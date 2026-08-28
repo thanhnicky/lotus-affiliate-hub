@@ -14,16 +14,152 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      affiliate_links: {
+        Row: {
+          affiliate_id: string
+          campaign: string
+          channel: string
+          clicks: number
+          created_at: string
+          full_url: string
+          id: string
+          landing_page_id: string
+          link_code: string
+        }
+        Insert: {
+          affiliate_id: string
+          campaign?: string
+          channel: string
+          clicks?: number
+          created_at?: string
+          full_url: string
+          id?: string
+          landing_page_id: string
+          link_code: string
+        }
+        Update: {
+          affiliate_id?: string
+          campaign?: string
+          channel?: string
+          clicks?: number
+          created_at?: string
+          full_url?: string
+          id?: string
+          landing_page_id?: string
+          link_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_links_affiliate_id_fkey"
+            columns: ["affiliate_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "affiliate_links_landing_page_id_fkey"
+            columns: ["landing_page_id"]
+            isOneToOne: false
+            referencedRelation: "landing_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      landing_pages: {
+        Row: {
+          base_url: string
+          created_at: string
+          description: string
+          id: string
+          is_active: boolean
+          name: string
+          slug: string
+        }
+        Insert: {
+          base_url: string
+          created_at?: string
+          description?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          slug: string
+        }
+        Update: {
+          base_url?: string
+          created_at?: string
+          description?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          affiliate_code: string
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          phone: string
+          status: Database["public"]["Enums"]["ctv_status"]
+          updated_at: string
+        }
+        Insert: {
+          affiliate_code: string
+          created_at?: string
+          email?: string
+          full_name?: string
+          id: string
+          phone?: string
+          status?: Database["public"]["Enums"]["ctv_status"]
+          updated_at?: string
+        }
+        Update: {
+          affiliate_code?: string
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          phone?: string
+          status?: Database["public"]["Enums"]["ctv_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_affiliate_link: {
+        Args: {
+          p_campaign?: string
+          p_channel: string
+          p_landing_page_id: string
+        }
+        Returns: {
+          affiliate_id: string
+          campaign: string
+          channel: string
+          clicks: number
+          created_at: string
+          full_url: string
+          id: string
+          landing_page_id: string
+          link_code: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "affiliate_links"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
-      [_ in never]: never
+      ctv_status: "pending" | "active" | "suspended"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +286,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      ctv_status: ["pending", "active", "suspended"],
+    },
   },
 } as const
