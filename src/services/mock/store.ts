@@ -128,7 +128,7 @@ function demoDb(): MockDb {
     {
       id: "wd-1",
       affiliate_id: DEMO_USER_ID,
-      amount: 2_000_000,
+      amount: 1_000_000,
       bank_name: "Vietcombank",
       bank_account_number: "0071000123456",
       bank_account_name: "NGUYEN MINH ANH",
@@ -139,7 +139,7 @@ function demoDb(): MockDb {
     {
       id: "wd-2",
       affiliate_id: DEMO_USER_ID,
-      amount: 1_500_000,
+      amount: 500_000,
       bank_name: "Vietcombank",
       bank_account_number: "0071000123456",
       bank_account_name: "NGUYEN MINH ANH",
