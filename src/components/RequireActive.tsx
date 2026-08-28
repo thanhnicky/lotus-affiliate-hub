@@ -2,8 +2,9 @@ import { useNavigate } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 import { Loader2 } from "lucide-react";
 
-import { useProfile } from "@/lib/session";
+import { useProfile } from "@/hooks/useAuth";
 
+/** Chỉ cho phép CTV có trạng thái active vào các trang nghiệp vụ. */
 export function RequireActive({ children }: { children: ReactNode }) {
   const { data: profile, isLoading } = useProfile();
   const navigate = useNavigate();
