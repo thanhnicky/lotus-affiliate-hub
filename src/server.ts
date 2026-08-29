@@ -3,6 +3,7 @@ import "./lib/error-capture";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { handleTrackClick } from "./server/trackClick";
+import { handleTrackLead } from "./server/trackLead";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -51,6 +52,9 @@ export default {
       const url = new URL(request.url);
       if (url.pathname === "/api/affiliate/track-click") {
         return await handleTrackClick(request);
+      }
+      if (url.pathname === "/api/affiliate/track-lead") {
+        return await handleTrackLead(request);
       }
 
       const handler = await getServerEntry();
