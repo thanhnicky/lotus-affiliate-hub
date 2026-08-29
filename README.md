@@ -68,3 +68,48 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+## API Tracking Click (Giai đoạn A)
+
+### Endpoint: `POST /api/affiliate/track-click`
+
+Nhận event click affiliate từ 4 landing page chính thức của Lotus:
+- `https://son-gia-go-tam-xi-mang.sonlotus.vn`
+- `https://son-gia-go-kim-loai.sonlotus.vn`
+- `https://son-kim-loai.sonlotus.vn`
+- `https://son-go.sonlotus.vn`
+
+### Lệnh curl kiểm tra OPTIONS (CORS Preflight):
+```bash
+curl -i -X OPTIONS "https://aff.sonlotus.vn/api/affiliate/track-click" \
+  -H "Origin: https://son-go.sonlotus.vn" \
+  -H "Access-Control-Request-Method: POST" \
+  -H "Access-Control-Request-Headers: Content-Type"
+```
+
+### Lệnh curl kiểm tra POST (Production với Origin hợp lệ):
+```bash
+curl -i -X POST "https://aff.sonlotus.vn/api/affiliate/track-click" \
+  -H "Origin: https://son-go.sonlotus.vn" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "affiliate_code": "LOTUS-XXXXXX",
+    "landing_page_url": "https://son-go.sonlotus.vn/",
+    "campaign": "tet-2026",
+    "visitor_id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+    "utm_medium": "zalo",
+    "utm_campaign": "tet-2026"
+  }'
+```
+
+### Lệnh curl kiểm tra Local Development (với bypass test header):
+```bash
+curl -i -X POST "http://localhost:8080/api/affiliate/track-click" \
+  -H "X-Tracking-Test: lotus-local-test" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "affiliate_code": "LOTUS-XXXXXX",
+    "landing_page_url": "https://son-go.sonlotus.vn/"
+  }'
+```
+
