@@ -1,8 +1,8 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Loader2, ShieldCheck, MailCheck } from "lucide-react";
+import { Loader2, ShieldCheck, MailCheck, RotateCcw } from "lucide-react";
 
 import { AuthCard } from "@/components/AuthCard";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,6 @@ import { Label } from "@/components/ui/label";
 import { authService } from "@/services";
 
 export function RegisterPage() {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [form, setForm] = useState({
     full_name: "",
@@ -24,6 +23,7 @@ export function RegisterPage() {
   });
   const [agree, setAgree] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
 
@@ -61,7 +61,7 @@ export function RegisterPage() {
 
     setLoading(true);
     try {
-      const res = await authService.signUp({
+      await authService.signUp({
         full_name: form.full_name,
         phone: form.phone,
         zalo: form.zalo,
@@ -70,18 +70,11 @@ export function RegisterPage() {
       });
 
       queryClient.clear();
-
-      if (res.needsEmailConfirmation) {
-        setRegisteredEmail(form.email);
-        toast.success("Đăng ký thành công!", {
-          description: "Vui lòng kiểm tra hộp thư email để xác nhận tài khoản.",
-        });
-      } else {
-        toast.success("Đăng ký thành công", {
-          description: "Hồ sơ của bạn đang chờ Lotus duyệt.",
-        });
-        await navigate({ to: "/pending" });
-      }
+      setRegisteredEmail(form.email);
+      toast.success("Đăng ký thành công!", {
+        description:
+          "Hãy kiểm tra email để xác thực tài khoản. Sau khi xác thực, tài khoản CTV sẽ được kích hoạt tự động.",
+      });
     } catch (err) {
       const message = err instanceof Error ? err.message : "Đăng ký chưa thành công.";
       setError(message);
@@ -91,14 +84,30 @@ export function RegisterPage() {
     }
   }
 
+  async function handleResend() {
+    if (!registeredEmail || resending) return;
+    setResending(true);
+    try {
+      await authService.resendVerificationEmail(registeredEmail);
+      toast.success("Đã gửi lại email xác thực", {
+        description: "Vui lòng kiểm tra hộp thư (bao gồm cả thư mục Spam/Rác).",
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Không thể gửi lại email.";
+      toast.error("Gửi lại email thất bại", { description: message });
+    } finally {
+      setResending(false);
+    }
+  }
+
   if (registeredEmail) {
     return (
       <AuthCard
-        title="Xác nhận email"
+        title="Xác thực email tài khoản"
         subtitle="Lotus Affiliate Portal"
         footer={
           <p className="text-sm text-muted-foreground">
-            Đã xác nhận email?{" "}
+            Đã xác thực xong?{" "}
             <Link to="/login" className="font-semibold text-primary hover:underline">
               Đăng nhập ngay
             </Link>
@@ -111,12 +120,31 @@ export function RegisterPage() {
           </div>
           <h2 className="font-display text-lg font-semibold">Kiểm tra hộp thư của bạn</h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Chúng tôi đã gửi link kích hoạt đến địa chỉ <span className="font-medium text-foreground">{registeredEmail}</span>.
-            Vui lòng nhấn vào link trong email để hoàn tất đăng ký.
+            Chúng tôi đã gửi link xác thực kích hoạt đến địa chỉ{" "}
+            <span className="font-medium text-foreground">{registeredEmail}</span>.
           </p>
-          <Button asChild className="h-12 w-full mt-4">
-            <Link to="/login">Đến trang đăng nhập</Link>
-          </Button>
+          <div className="rounded-xl bg-secondary/80 p-3 text-xs text-secondary-foreground text-left">
+            💡 <strong>Kích hoạt tự động:</strong> Khi bạn nhấn vào nút xác thực trong email, tài khoản CTV sẽ được kích hoạt tự động và có thể bắt đầu tạo link tiếp thị ngay lập tức.
+          </div>
+          <div className="pt-2 grid gap-2">
+            <Button asChild className="h-12 w-full">
+              <Link to="/login">Đến trang đăng nhập</Link>
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-12 w-full"
+              disabled={resending}
+              onClick={handleResend}
+            >
+              {resending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <RotateCcw className="mr-2 h-4 w-4" />
+              )}
+              Gửi lại email xác thực
+            </Button>
+          </div>
         </div>
       </AuthCard>
     );
@@ -138,8 +166,7 @@ export function RegisterPage() {
       <div className="mb-5 flex gap-3 rounded-2xl bg-secondary p-4 text-sm text-secondary-foreground">
         <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
         <p>
-          Tài khoản cần được Lotus <span className="font-semibold">duyệt</span> trước khi bạn có thể
-          tạo link bán hàng. Thời gian duyệt thường trong 1 ngày làm việc.
+          Tài khoản CTV sẽ được <span className="font-semibold text-foreground">kích hoạt tự động</span> ngay sau khi bạn xác thực địa chỉ email.
         </p>
       </div>
 
@@ -212,4 +239,5 @@ export function RegisterPage() {
     </AuthCard>
   );
 }
+
 

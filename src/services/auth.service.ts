@@ -75,7 +75,7 @@ export const authService = {
     };
 
     if (origin) {
-      options.emailRedirectTo = `${origin}/login`;
+      options.emailRedirectTo = `${origin}/auth/callback`;
     }
 
     const { data, error } = await supabase.auth.signUp({
@@ -100,6 +100,37 @@ export const authService = {
       session: data.session,
       needsEmailConfirmation: Boolean(data.user && !data.session),
     };
+  },
+
+  async resendVerificationEmail(email: string): Promise<void> {
+    if (!email.trim()) throw new ServiceError("Vui lòng cung cấp địa chỉ email.");
+    const origin =
+      typeof window !== "undefined" && window.location.origin
+        ? window.location.origin
+        : "";
+
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: email.trim(),
+      ...(origin
+        ? {
+            options: {
+              emailRedirectTo: `${origin}/auth/callback`,
+            },
+          }
+        : {}),
+    });
+
+    if (error) {
+      if (import.meta.env.DEV) {
+        console.error("[Auth Resend Error]", {
+          name: error.name,
+          message: error.message,
+          status: error.status,
+        });
+      }
+      throw new ServiceError(translateAuthError(error));
+    }
   },
 
 
