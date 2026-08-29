@@ -1,37 +1,42 @@
-CREATE TYPE public.affiliate_lead_type AS ENUM ('form_submit','zalo_click','phone_click','email_click');
+-- affiliate_leads already existed in the database (created outside this repo's
+-- migration history, 0 rows, no application code depends on it yet). This
+-- migration extends it in place instead of recreating it, and hardens grants
+-- that were left wider than every other table in this schema.
 
-CREATE TABLE public.affiliate_leads (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  affiliate_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  affiliate_link_id uuid NOT NULL REFERENCES public.affiliate_links(id) ON DELETE CASCADE,
-  landing_page_id uuid NOT NULL REFERENCES public.landing_pages(id) ON DELETE CASCADE,
-  affiliate_code text NOT NULL,
-  visitor_id uuid NOT NULL,
-  lead_type public.affiliate_lead_type NOT NULL,
-  lead_source text NOT NULL,
-  -- Customer details typed into the landing page form. Written only by the
-  -- tracking endpoint via service_role; readable only by the owning affiliate.
-  lead_data jsonb NOT NULL DEFAULT '{}'::jsonb,
-  created_at timestamptz NOT NULL DEFAULT now()
-);
-
--- Portal listing: newest leads of one affiliate.
-CREATE INDEX affiliate_leads_affiliate_created_idx
-  ON public.affiliate_leads (affiliate_id, created_at DESC);
--- Per-link reporting.
-CREATE INDEX affiliate_leads_link_idx
-  ON public.affiliate_leads (affiliate_link_id);
--- Duplicate lookup performed by the track-lead endpoint.
-CREATE INDEX affiliate_leads_dedupe_idx
-  ON public.affiliate_leads (visitor_id, affiliate_link_id, lead_type, created_at DESC);
-
+-- Harden grants first. RLS is already enabled with zero policies, so anon and
+-- authenticated currently have no real access despite these grants — but
+-- leaving `anon` with ALL (including INSERT/UPDATE/DELETE/TRUNCATE) on a table
+-- that will hold customer PII is a live risk the moment any policy is added
+-- carelessly. No other table in this project grants anything to anon.
+REVOKE ALL ON public.affiliate_leads FROM anon;
+REVOKE INSERT, UPDATE, DELETE, TRUNCATE, TRIGGER, REFERENCES ON public.affiliate_leads FROM authenticated;
 GRANT SELECT ON public.affiliate_leads TO authenticated;
 GRANT ALL ON public.affiliate_leads TO service_role;
 
-ALTER TABLE public.affiliate_leads ENABLE ROW LEVEL SECURITY;
+-- Lead touchpoint type. Distinct from the pre-existing lead_status column,
+-- which tracks sales follow-up workflow (new/contacted/... — untouched here).
+CREATE TYPE public.affiliate_lead_type AS ENUM ('form_submit','zalo_click','phone_click','email_click');
 
--- Affiliates may read their own leads so they can follow up. No INSERT/UPDATE/
--- DELETE policy exists for authenticated, so the PII in lead_data can only ever
--- be written by the server using the service role.
+-- Table has 0 rows (verified before writing this migration), so NOT NULL can
+-- be added directly without a backfill step.
+ALTER TABLE public.affiliate_leads
+  ADD COLUMN affiliate_code text NOT NULL,
+  ADD COLUMN lead_type public.affiliate_lead_type NOT NULL,
+  ADD COLUMN province text,
+  ADD COLUMN district text,
+  ADD COLUMN product_interest text,
+  ADD COLUMN area_sqm numeric;
+
+-- Duplicate lookup performed by the track-lead endpoint (30 minute window).
+CREATE INDEX affiliate_leads_dedupe_idx
+  ON public.affiliate_leads (visitor_id, affiliate_link_id, lead_type, created_at DESC);
+-- Manual lookup/QA by affiliate_code.
+CREATE INDEX idx_affiliate_leads_code
+  ON public.affiliate_leads (affiliate_code);
+
+-- No SELECT policy existed yet (0 policies, despite RLS being enabled), so
+-- affiliates could not see their own leads at all. This lets an affiliate read
+-- only their own leads for follow-up; there is still no INSERT/UPDATE/DELETE
+-- policy, so lead_data can only ever be written by the server via service_role.
 CREATE POLICY "own leads select" ON public.affiliate_leads
   FOR SELECT TO authenticated USING (auth.uid() = affiliate_id);

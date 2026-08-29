@@ -193,19 +193,35 @@ export async function handleTrackLead(request: Request): Promise<Response> {
       );
     }
 
-    // Step 4: Insert the lead.
+    // Step 4: Insert the lead. affiliate_leads predates this endpoint and stores
+    // customer details in discrete typed columns rather than jsonb, so lead_data
+    // is mapped field-by-field instead of stored as-is. Click leads (zalo/phone/
+    // email) don't populate customer_name/phone/email: that would be Lotus' own
+    // static contact number, not the visitor's, and recording it adds no signal
+    // beyond lead_type, which already says which channel was used.
+    const insertRow: Record<string, unknown> = {
+      affiliate_id: affiliateId,
+      affiliate_link_id: affiliateLinkId,
+      landing_page_id: landingPageId,
+      affiliate_code: resolvedAffiliateCode,
+      visitor_id: visitor_id,
+      lead_type: lead_type,
+      lead_source: lead_source,
+    };
+    if (lead_type === "form_submit") {
+      if (lead_data.name) insertRow["customer_name"] = lead_data.name;
+      if (lead_data.phone) insertRow["customer_phone"] = lead_data.phone;
+      if (lead_data.email) insertRow["customer_email"] = lead_data.email;
+      if (lead_data.province) insertRow["province"] = lead_data.province;
+      if (lead_data.district) insertRow["district"] = lead_data.district;
+      if (lead_data.product_interest) insertRow["product_interest"] = lead_data.product_interest;
+      if (lead_data.area_sqm !== undefined) insertRow["area_sqm"] = lead_data.area_sqm;
+      if (lead_data.message) insertRow["notes"] = lead_data.message;
+    }
+
     const { data: inserted, error: insertError } = await supabaseAdmin
       .from("affiliate_leads")
-      .insert({
-        affiliate_id: affiliateId,
-        affiliate_link_id: affiliateLinkId,
-        landing_page_id: landingPageId,
-        affiliate_code: resolvedAffiliateCode,
-        visitor_id: visitor_id,
-        lead_type: lead_type,
-        lead_source: lead_source,
-        lead_data: lead_data,
-      })
+      .insert(insertRow)
       .select("id, created_at")
       .single();
 
