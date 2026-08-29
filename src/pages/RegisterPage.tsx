@@ -2,7 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { Loader2, ShieldCheck, MailCheck } from "lucide-react";
 
 import { AuthCard } from "@/components/AuthCard";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ export function RegisterPage() {
   const [agree, setAgree] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
 
   const set = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [key]: e.target.value }));
@@ -32,6 +33,19 @@ export function RegisterPage() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
+    if (!form.full_name.trim()) {
+      setError("Vui lòng nhập họ và tên.");
+      return;
+    }
+    if (!form.phone.trim()) {
+      setError("Vui lòng nhập số điện thoại.");
+      return;
+    }
+    if (!form.email.trim()) {
+      setError("Vui lòng nhập email.");
+      return;
+    }
     if (form.password.length < 6) {
       setError("Mật khẩu cần tối thiểu 6 ký tự.");
       return;
@@ -44,18 +58,30 @@ export function RegisterPage() {
       setError("Vui lòng đồng ý chính sách cộng tác viên.");
       return;
     }
+
     setLoading(true);
     try {
-      await authService.signUp({
+      const res = await authService.signUp({
         full_name: form.full_name,
         phone: form.phone,
         zalo: form.zalo,
         email: form.email,
         password: form.password,
       });
+
       queryClient.clear();
-      toast.success("Đăng ký thành công", { description: "Hồ sơ của bạn đang chờ Lotus duyệt." });
-      await navigate({ to: "/pending" });
+
+      if (res.needsEmailConfirmation) {
+        setRegisteredEmail(form.email);
+        toast.success("Đăng ký thành công!", {
+          description: "Vui lòng kiểm tra hộp thư email để xác nhận tài khoản.",
+        });
+      } else {
+        toast.success("Đăng ký thành công", {
+          description: "Hồ sơ của bạn đang chờ Lotus duyệt.",
+        });
+        await navigate({ to: "/pending" });
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Đăng ký chưa thành công.";
       setError(message);
@@ -63,6 +89,37 @@ export function RegisterPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (registeredEmail) {
+    return (
+      <AuthCard
+        title="Xác nhận email"
+        subtitle="Lotus Affiliate Portal"
+        footer={
+          <p className="text-sm text-muted-foreground">
+            Đã xác nhận email?{" "}
+            <Link to="/login" className="font-semibold text-primary hover:underline">
+              Đăng nhập ngay
+            </Link>
+          </p>
+        }
+      >
+        <div className="space-y-4 text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <MailCheck className="h-7 w-7" />
+          </div>
+          <h2 className="font-display text-lg font-semibold">Kiểm tra hộp thư của bạn</h2>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Chúng tôi đã gửi link kích hoạt đến địa chỉ <span className="font-medium text-foreground">{registeredEmail}</span>.
+            Vui lòng nhấn vào link trong email để hoàn tất đăng ký.
+          </p>
+          <Button asChild className="h-12 w-full mt-4">
+            <Link to="/login">Đến trang đăng nhập</Link>
+          </Button>
+        </div>
+      </AuthCard>
+    );
   }
 
   return (
@@ -98,7 +155,7 @@ export function RegisterPage() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="zalo">Số Zalo</Label>
-            <Input id="zalo" inputMode="tel" required className="h-12" value={form.zalo} onChange={set("zalo")} />
+            <Input id="zalo" inputMode="tel" className="h-12" value={form.zalo} onChange={set("zalo")} />
           </div>
         </div>
         <div className="space-y-2">
@@ -155,3 +212,4 @@ export function RegisterPage() {
     </AuthCard>
   );
 }
+

@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { initialsOf } from "@/lib/format";
-import { useProfile, useSignOut } from "@/hooks/useAuth";
+import { useAuth, useSignOut } from "@/hooks/useAuth";
 import { LotusMark } from "@/components/LotusMark";
 
 type NavItem = { to: string; label: string; icon: LucideIcon };
@@ -39,7 +39,7 @@ export function AppLayout({
   children: ReactNode;
 }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const { data: profile } = useProfile();
+  const { affiliate } = useAuth();
   const signOut = useSignOut();
 
   return (
@@ -90,15 +90,15 @@ export function AppLayout({
             <div className="ml-auto flex items-center gap-3">
               <div className="hidden text-right sm:block">
                 <p className="text-sm font-medium leading-tight">
-                  {profile?.full_name ?? "Cộng tác viên"}
+                  {affiliate?.full_name ?? "Cộng tác viên"}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Mã CTV: {profile?.affiliate_code ?? "—"}
+                  Mã CTV: {affiliate?.affiliate_code ?? "—"}
                 </p>
               </div>
               <Avatar className="h-9 w-9 border border-border">
                 <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
-                  {initialsOf(profile?.full_name ?? "")}
+                  {initialsOf(affiliate?.full_name ?? "")}
                 </AvatarFallback>
               </Avatar>
               <Button
@@ -148,3 +148,4 @@ export function AppLayout({
     </div>
   );
 }
+

@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { CardsSkeleton, EmptyState, ErrorState } from "@/components/states";
-import { useProfile } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { WITHDRAWAL_STATUS_LABEL, linksService, withdrawalsService } from "@/services";
 import { formatDate, formatVnd } from "@/lib/format";
 import type { WithdrawalStatus } from "@/types";
@@ -22,8 +22,8 @@ const STATUS_CLASS: Record<WithdrawalStatus, string> = {
 };
 
 export function WithdrawalsPage() {
-  const { data: profile, session } = useProfile();
-  const userId = session?.user_id;
+  const { affiliate } = useAuth();
+  const affiliateId = affiliate?.id;
   const queryClient = useQueryClient();
 
   const [amount, setAmount] = useState("");
@@ -33,39 +33,41 @@ export function WithdrawalsPage() {
   const [note, setNote] = useState("");
 
   useEffect(() => {
-    if (!profile) return;
-    setBankName((v) => v || profile.bank_name);
-    setAccountNumber((v) => v || profile.bank_account_number);
-    setAccountName((v) => v || profile.bank_account_name);
-  }, [profile]);
+    if (!affiliate) return;
+    setBankName((v) => v || affiliate.bank_name || "");
+    setAccountNumber((v) => v || affiliate.bank_account || "");
+    setAccountName((v) => v || affiliate.bank_holder || "");
+  }, [affiliate]);
 
   const statsQuery = useQuery({
-    queryKey: ["stats", userId],
-    queryFn: () => linksService.getDashboardStats(userId!),
-    enabled: Boolean(userId),
+    queryKey: ["stats", affiliateId],
+    queryFn: () => linksService.getDashboardStats(affiliateId!),
+    enabled: Boolean(affiliateId),
   });
 
   const listQuery = useQuery({
-    queryKey: ["withdrawals", userId],
-    queryFn: () => withdrawalsService.listWithdrawals(userId!),
-    enabled: Boolean(userId),
+    queryKey: ["withdrawals", affiliateId],
+    queryFn: () => withdrawalsService.listWithdrawals(affiliateId!),
+    enabled: Boolean(affiliateId),
   });
 
   const request = useMutation({
     mutationFn: () =>
-      withdrawalsService.requestWithdrawal(userId!, {
+      withdrawalsService.requestWithdrawal(affiliateId!, {
         amount: Number(amount.replace(/\D/g, "")),
         bank_name: bankName,
-        bank_account_number: accountNumber,
-        bank_account_name: accountName,
-        note,
+        bank_account: accountNumber,
+        bank_holder: accountName,
+        note: note.trim() || undefined,
       }),
     onSuccess: () => {
       setAmount("");
       setNote("");
       void queryClient.invalidateQueries({ queryKey: ["withdrawals"] });
       void queryClient.invalidateQueries({ queryKey: ["stats"] });
-      toast.success("Đã gửi yêu cầu rút tiền", { description: "Lotus sẽ xử lý trong 1-3 ngày làm việc." });
+      toast.success("Đã gửi yêu cầu rút tiền", {
+        description: "Lotus sẽ xử lý trong 1-3 ngày làm việc.",
+      });
     },
     onError: (e: Error) => toast.error("Không gửi được yêu cầu", { description: e.message }),
   });
@@ -108,7 +110,13 @@ export function WithdrawalsPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="bank">Ngân hàng</Label>
-              <Input id="bank" className="h-12" value={bankName} onChange={(e) => setBankName(e.target.value)} />
+              <Input
+                id="bank"
+                className="h-12"
+                value={bankName}
+                onChange={(e) => setBankName(e.target.value)}
+                placeholder="vd: Vietcombank"
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="account">Số tài khoản</Label>
@@ -118,6 +126,7 @@ export function WithdrawalsPage() {
                 className="h-12"
                 value={accountNumber}
                 onChange={(e) => setAccountNumber(e.target.value)}
+                placeholder="Số tài khoản ngân hàng"
               />
             </div>
             <div className="space-y-2">
@@ -127,11 +136,18 @@ export function WithdrawalsPage() {
                 className="h-12"
                 value={accountName}
                 onChange={(e) => setAccountName(e.target.value)}
+                placeholder="Tên chủ tài khoản (viết hoa)"
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="note">Ghi chú (tuỳ chọn)</Label>
-              <Textarea id="note" rows={3} value={note} onChange={(e) => setNote(e.target.value)} />
+              <Textarea
+                id="note"
+                rows={3}
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Thông tin thêm (nếu có)"
+              />
             </div>
             <Button type="submit" className="h-12 w-full" disabled={request.isPending}>
               {request.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
@@ -158,13 +174,13 @@ export function WithdrawalsPage() {
                 <li key={w.id} className="rounded-2xl border border-border/70 bg-card p-4 shadow-card">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-display text-lg font-semibold">{formatVnd(w.amount)}</span>
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_CLASS[w.status]}`}>
-                      {WITHDRAWAL_STATUS_LABEL[w.status]}
+                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_CLASS[w.status as keyof typeof STATUS_CLASS] || "bg-secondary text-secondary-foreground"}`}>
+                      {WITHDRAWAL_STATUS_LABEL[w.status] || w.status}
                     </span>
                     <span className="ml-auto text-xs text-muted-foreground">{formatDate(w.created_at)}</span>
                   </div>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    {w.bank_name} · {w.bank_account_number} · {w.bank_account_name}
+                    {w.bank_name} · {w.bank_account} · {w.bank_holder}
                   </p>
                   {w.note ? <p className="mt-1 text-sm text-muted-foreground">Ghi chú: {w.note}</p> : null}
                 </li>
@@ -176,3 +192,4 @@ export function WithdrawalsPage() {
     </AppLayout>
   );
 }
+

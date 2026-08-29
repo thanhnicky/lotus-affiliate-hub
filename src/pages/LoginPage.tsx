@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authService } from "@/services";
+import { supabase } from "@/integrations/supabase/client";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -23,10 +24,26 @@ export function LoginPage() {
     setLoading(true);
     setError(null);
     try {
-      await authService.signIn(email, password);
+      const authResult = await authService.signIn(email, password);
       queryClient.clear();
-      toast.success("Chào mừng bạn trở lại!");
-      await navigate({ to: "/dashboard" });
+
+      // Kiểm tra trạng thái CTV để điều hướng chính xác
+      const { data: profile } = await supabase
+        .from("affiliates")
+        .select("status")
+        .eq("user_id", authResult.user_id)
+        .maybeSingle();
+
+      if (profile?.status === "active") {
+        toast.success("Chào mừng bạn trở lại!");
+        await navigate({ to: "/dashboard" });
+      } else if (profile?.status === "suspended") {
+        toast.warning("Tài khoản của bạn đang bị tạm khóa.");
+        await navigate({ to: "/suspended" });
+      } else {
+        toast.info("Tài khoản của bạn đang chờ Lotus xét duyệt.");
+        await navigate({ to: "/pending" });
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Đăng nhập chưa thành công.";
       setError(message);
@@ -37,13 +54,19 @@ export function LoginPage() {
   }
 
   async function onForgotPassword() {
+    if (!email.trim()) {
+      toast.error("Vui lòng nhập email trước khi yêu cầu đặt lại mật khẩu.");
+      return;
+    }
     try {
       await authService.requestPasswordReset(email);
-      toast.success("Đã gửi hướng dẫn đặt lại mật khẩu", {
-        description: "Vui lòng kiểm tra email của bạn.",
+      toast.success("Đã gửi email đặt lại mật khẩu", {
+        description: "Vui lòng kiểm tra hộp thư của bạn.",
       });
-    } catch {
-      toast.error("Vui lòng nhập email trước khi đặt lại mật khẩu.");
+    } catch (err: any) {
+      toast.error("Không gửi được email đặt lại mật khẩu", {
+        description: err?.message || "Vui lòng thử lại sau.",
+      });
     }
   }
 
@@ -106,12 +129,7 @@ export function LoginPage() {
           Quên mật khẩu?
         </button>
       </form>
-
-      <p className="mt-6 rounded-xl bg-secondary px-4 py-3 text-xs text-secondary-foreground">
-        Chế độ demo giao diện: đăng nhập thử với{" "}
-        <span className="font-semibold">demo@lotus.vn</span> /{" "}
-        <span className="font-semibold">lotus123</span>.
-      </p>
     </AuthCard>
   );
 }
+

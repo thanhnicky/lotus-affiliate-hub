@@ -18,6 +18,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedLinksRouteImport } from './routes/_authenticated/links'
 import { Route as AuthenticatedPendingRouteImport } from './routes/_authenticated/pending'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedSuspendedRouteImport } from './routes/_authenticated/suspended'
 import { Route as AuthenticatedWithdrawalsRouteImport } from './routes/_authenticated/withdrawals'
 
 const IndexRoute = IndexRouteImport.update({
@@ -64,6 +65,11 @@ const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSuspendedRoute = AuthenticatedSuspendedRouteImport.update({
+  id: '/suspended',
+  path: '/suspended',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedWithdrawalsRoute =
   AuthenticatedWithdrawalsRouteImport.update({
     id: '/withdrawals',
@@ -80,6 +86,7 @@ export interface FileRoutesByFullPath {
   '/links': typeof AuthenticatedLinksRoute
   '/pending': typeof AuthenticatedPendingRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/suspended': typeof AuthenticatedSuspendedRoute
   '/withdrawals': typeof AuthenticatedWithdrawalsRoute
 }
 export interface FileRoutesByTo {
@@ -91,6 +98,7 @@ export interface FileRoutesByTo {
   '/links': typeof AuthenticatedLinksRoute
   '/pending': typeof AuthenticatedPendingRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/suspended': typeof AuthenticatedSuspendedRoute
   '/withdrawals': typeof AuthenticatedWithdrawalsRoute
 }
 export interface FileRoutesById {
@@ -104,6 +112,7 @@ export interface FileRoutesById {
   '/_authenticated/links': typeof AuthenticatedLinksRoute
   '/_authenticated/pending': typeof AuthenticatedPendingRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/suspended': typeof AuthenticatedSuspendedRoute
   '/_authenticated/withdrawals': typeof AuthenticatedWithdrawalsRoute
 }
 export interface FileRouteTypes {
@@ -117,6 +126,7 @@ export interface FileRouteTypes {
     | '/links'
     | '/pending'
     | '/profile'
+    | '/suspended'
     | '/withdrawals'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -128,6 +138,7 @@ export interface FileRouteTypes {
     | '/links'
     | '/pending'
     | '/profile'
+    | '/suspended'
     | '/withdrawals'
   id:
     | '__root__'
@@ -140,6 +151,7 @@ export interface FileRouteTypes {
     | '/_authenticated/links'
     | '/_authenticated/pending'
     | '/_authenticated/profile'
+    | '/_authenticated/suspended'
     | '/_authenticated/withdrawals'
   fileRoutesById: FileRoutesById
 }
@@ -215,6 +227,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/suspended': {
+      id: '/_authenticated/suspended'
+      path: '/suspended'
+      fullPath: '/suspended'
+      preLoaderRoute: typeof AuthenticatedSuspendedRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/withdrawals': {
       id: '/_authenticated/withdrawals'
       path: '/withdrawals'
@@ -231,6 +250,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLinksRoute: typeof AuthenticatedLinksRoute
   AuthenticatedPendingRoute: typeof AuthenticatedPendingRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedSuspendedRoute: typeof AuthenticatedSuspendedRoute
   AuthenticatedWithdrawalsRoute: typeof AuthenticatedWithdrawalsRoute
 }
 
@@ -240,6 +260,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLinksRoute: AuthenticatedLinksRoute,
   AuthenticatedPendingRoute: AuthenticatedPendingRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedSuspendedRoute: AuthenticatedSuspendedRoute,
   AuthenticatedWithdrawalsRoute: AuthenticatedWithdrawalsRoute,
 }
 

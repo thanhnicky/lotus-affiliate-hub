@@ -17,13 +17,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ErrorState, LoadingState } from "@/components/states";
-import { useProfile } from "@/hooks/useAuth";
 import { SHARE_CHANNELS, linksService } from "@/services";
 import type { AffiliateLink, ShareChannel } from "@/types";
 
 export function CreateLinkPage() {
-  const { session } = useProfile();
-  const userId = session?.user_id;
   const queryClient = useQueryClient();
 
   const [landingPageId, setLandingPageId] = useState("");
@@ -39,22 +36,23 @@ export function CreateLinkPage() {
 
   const createLink = useMutation({
     mutationFn: () =>
-      linksService.createLink(userId!, {
+      linksService.createLink({
         landing_page_id: landingPageId,
-        channel: channel as ShareChannel,
-        campaign,
+        channel: channel as string,
+        campaign_name: campaign.trim() || undefined,
       }),
     onSuccess: (link) => {
       setCreated(link);
       setShowQr(false);
       void queryClient.invalidateQueries({ queryKey: ["links"] });
       void queryClient.invalidateQueries({ queryKey: ["stats"] });
-      toast.success("Đã tạo link tiếp thị");
+      toast.success("Đã tạo link tiếp thị thành công!");
     },
     onError: (e: Error) => toast.error("Không tạo được link", { description: e.message }),
   });
 
   const canSubmit = Boolean(landingPageId && channel) && !createLink.isPending;
+  const linkUrl = created?.affiliate_url || "";
 
   return (
     <AppLayout
@@ -84,7 +82,7 @@ export function CreateLinkPage() {
                   <SelectContent>
                     {(pagesQuery.data ?? []).map((p) => (
                       <SelectItem key={p.id} value={p.id}>
-                        {p.name} · {p.product_line}
+                        {p.name} {p.product_line ? `· ${p.product_line}` : ""}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -131,7 +129,7 @@ export function CreateLinkPage() {
 
         <div className="rounded-3xl border border-border/70 bg-card p-6 shadow-card">
           <h2 className="font-display text-lg font-semibold">Link của bạn</h2>
-          {!created ? (
+          {!created || !linkUrl ? (
             <div className="mt-4 flex flex-col items-center rounded-2xl border border-dashed border-border p-8 text-center">
               <Sparkles className="h-5 w-5 text-primary" />
               <p className="mt-3 text-sm text-muted-foreground">
@@ -141,10 +139,10 @@ export function CreateLinkPage() {
           ) : (
             <div className="mt-4 space-y-4">
               <code className="block break-all rounded-xl bg-muted px-4 py-3 text-xs">
-                {created.full_url}
+                {linkUrl}
               </code>
               <div className="flex flex-wrap gap-2">
-                <CopyButton value={created.full_url} withText label="Sao chép link" variant="default" />
+                <CopyButton value={linkUrl} withText label="Sao chép link" variant="default" />
                 <Button variant="outline" onClick={() => setShowQr((v) => !v)}>
                   <QrCode className="mr-2 h-4 w-4" />
                   {showQr ? "Ẩn QR code" : "Tạo QR code"}
@@ -152,7 +150,7 @@ export function CreateLinkPage() {
               </div>
               {showQr ? (
                 <div className="flex justify-center rounded-2xl bg-background p-5">
-                  <QRCodeCanvas value={created.full_url} size={180} includeMargin />
+                  <QRCodeCanvas value={linkUrl} size={180} includeMargin />
                 </div>
               ) : null}
             </div>
@@ -162,3 +160,4 @@ export function CreateLinkPage() {
     </AppLayout>
   );
 }
+

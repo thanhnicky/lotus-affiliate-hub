@@ -15,15 +15,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CardsSkeleton, EmptyState, ErrorState } from "@/components/states";
-import { useProfile } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { CHANNEL_LABEL, SHARE_CHANNELS, linksService } from "@/services";
 import { formatDate, formatNumber, formatVnd } from "@/lib/format";
 
 const ALL = "all";
 
 export function LinksPage() {
-  const { session } = useProfile();
-  const userId = session?.user_id;
+  const { affiliate } = useAuth();
+  const affiliateId = affiliate?.id;
   const [q, setQ] = useState("");
   const [page, setPage] = useState(ALL);
   const [channel, setChannel] = useState(ALL);
@@ -34,9 +34,9 @@ export function LinksPage() {
   });
 
   const linksQuery = useQuery({
-    queryKey: ["links", userId],
-    queryFn: () => linksService.listLinks(userId!),
-    enabled: Boolean(userId),
+    queryKey: ["links", affiliateId],
+    queryFn: () => linksService.listLinks(affiliateId!),
+    enabled: Boolean(affiliateId),
   });
 
   const keyword = q.trim().toLowerCase();
@@ -44,7 +44,9 @@ export function LinksPage() {
     if (page !== ALL && l.landing_page_id !== page) return false;
     if (channel !== ALL && l.channel !== channel) return false;
     if (!keyword) return true;
-    return `${l.landing_page_name} ${CHANNEL_LABEL[l.channel]} ${l.campaign ?? ""}`
+    const channelLabel = CHANNEL_LABEL[l.channel] || l.channel;
+    const campaignStr = l.campaign_name || "";
+    return `${l.landing_page_name ?? ""} ${channelLabel} ${campaignStr}`
       .toLowerCase()
       .includes(keyword);
   });
@@ -121,39 +123,41 @@ export function LinksPage() {
         />
       ) : (
         <ul className="grid gap-3">
-          {filtered.map((l) => (
-            <li key={l.id} className="rounded-2xl border border-border/70 bg-card p-4 shadow-card md:p-5">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-semibold">{l.landing_page_name}</span>
-                <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs text-secondary-foreground">
-                  {CHANNEL_LABEL[l.channel]}
-                </span>
-                {l.campaign ? (
-                  <span className="rounded-full bg-accent/10 px-2.5 py-0.5 text-xs text-accent">
-                    {l.campaign}
+          {filtered.map((l) => {
+            const linkUrl = l.affiliate_url || "";
+            return (
+              <li key={l.id} className="rounded-2xl border border-border/70 bg-card p-4 shadow-card md:p-5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-semibold">{l.landing_page_name || "Sơn Lotus"}</span>
+                  <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs text-secondary-foreground">
+                    {CHANNEL_LABEL[l.channel] || l.channel}
                   </span>
-                ) : null}
-                <span className="ml-auto text-xs text-muted-foreground">
-                  Tạo ngày {formatDate(l.created_at)}
-                </span>
-              </div>
+                  {l.campaign_name ? (
+                    <span className="rounded-full bg-accent/10 px-2.5 py-0.5 text-xs text-accent">
+                      {l.campaign_name}
+                    </span>
+                  ) : null}
+                  <span className="ml-auto text-xs text-muted-foreground">
+                    Tạo ngày {formatDate(l.created_at)}
+                  </span>
+                </div>
 
-              <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
-                <Metric label="Click" value={formatNumber(l.clicks)} />
-                <Metric label="Lead" value={formatNumber(l.leads)} />
-                <Metric label="Đơn" value={formatNumber(l.orders)} />
-                <Metric label="Doanh thu" value={formatVnd(l.revenue)} />
-                <Metric label="Hoa hồng" value={formatVnd(l.commission)} />
-              </dl>
+                <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  <Metric label="Click" value={formatNumber(l.clicks ?? 0)} />
+                  <Metric label="Chuyển đổi" value={formatNumber(l.conversions ?? 0)} />
+                  <Metric label="Tổng doanh thu" value={formatVnd(l.total_revenue ?? 0)} />
+                  <Metric label="Hoa hồng" value={formatVnd(l.commission ?? 0)} />
+                </dl>
 
-              <div className="mt-4 flex items-center gap-2">
-                <code className="min-w-0 flex-1 truncate rounded-lg bg-muted px-3 py-2 text-xs">
-                  {l.full_url}
-                </code>
-                <CopyButton value={l.full_url} />
-              </div>
-            </li>
-          ))}
+                <div className="mt-4 flex items-center gap-2">
+                  <code className="min-w-0 flex-1 truncate rounded-lg bg-muted px-3 py-2 text-xs">
+                    {linkUrl}
+                  </code>
+                  <CopyButton value={linkUrl} />
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
     </AppLayout>
@@ -168,3 +172,4 @@ function Metric({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+

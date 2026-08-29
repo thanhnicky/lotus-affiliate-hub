@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2, Lock, LogOut } from "lucide-react";
 
@@ -8,43 +8,50 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ErrorState, LoadingState } from "@/components/states";
-import { useProfile, useSignOut } from "@/hooks/useAuth";
+import { useAuth, useSignOut } from "@/hooks/useAuth";
 import { AFFILIATE_STATUS_LABEL, profileService } from "@/services";
 import { formatVnd } from "@/lib/format";
 
 export function ProfilePage() {
-  const { data: profile, isLoading, isError, refetch, session } = useProfile();
-  const queryClient = useQueryClient();
+  const { affiliate, user, isLoading, error, refreshProfile } = useAuth();
   const signOut = useSignOut();
 
   const [form, setForm] = useState({
     full_name: "",
     phone: "",
-    zalo: "",
+    zalo_id: "",
     bank_name: "",
-    bank_account_number: "",
-    bank_account_name: "",
+    bank_account: "",
+    bank_holder: "",
   });
 
   useEffect(() => {
-    if (!profile) return;
+    if (!affiliate) return;
     setForm({
-      full_name: profile.full_name,
-      phone: profile.phone,
-      zalo: profile.zalo,
-      bank_name: profile.bank_name,
-      bank_account_number: profile.bank_account_number,
-      bank_account_name: profile.bank_account_name,
+      full_name: affiliate.full_name || "",
+      phone: affiliate.phone || "",
+      zalo_id: affiliate.zalo_id || "",
+      bank_name: affiliate.bank_name || "",
+      bank_account: affiliate.bank_account || "",
+      bank_holder: affiliate.bank_holder || "",
     });
-  }, [profile]);
+  }, [affiliate]);
 
   const set = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [key]: e.target.value }));
 
   const save = useMutation({
-    mutationFn: () => profileService.updateProfile(session!.user_id, form),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["profile"] });
+    mutationFn: () =>
+      profileService.updateProfile(affiliate!.id, {
+        full_name: form.full_name,
+        phone: form.phone,
+        zalo_id: form.zalo_id,
+        bank_name: form.bank_name,
+        bank_account: form.bank_account,
+        bank_holder: form.bank_holder,
+      }),
+    onSuccess: async () => {
+      await refreshProfile();
       toast.success("Đã lưu thông tin hồ sơ");
     },
     onError: (e: Error) => toast.error("Lưu không thành công", { description: e.message }),
@@ -52,9 +59,9 @@ export function ProfilePage() {
 
   return (
     <AppLayout title="Hồ sơ của tôi" description="Cập nhật thông tin liên hệ và tài khoản nhận hoa hồng.">
-      {isError ? (
-        <ErrorState onRetry={() => void refetch()} />
-      ) : isLoading || !profile ? (
+      {error ? (
+        <ErrorState onRetry={() => void refreshProfile()} />
+      ) : isLoading || !affiliate ? (
         <LoadingState label="Đang tải hồ sơ..." />
       ) : (
         <div className="grid max-w-3xl gap-6">
@@ -64,12 +71,25 @@ export function ProfilePage() {
               <h2 className="text-sm font-medium">Thông tin do Lotus quản lý</h2>
             </div>
             <dl className="mt-4 grid gap-3 sm:grid-cols-2">
-              <ReadOnly label="Mã cộng tác viên" value={profile.affiliate_code} />
-              <ReadOnly label="Email đăng nhập" value={profile.email} />
-              <ReadOnly label="Tỷ lệ hoa hồng" value={`${Math.round(profile.commission_rate * 100)}%`} />
-              <ReadOnly label="Trạng thái" value={AFFILIATE_STATUS_LABEL[profile.status]} />
-              <ReadOnly label="Vai trò" value={profile.role === "admin" ? "Quản trị" : "Cộng tác viên"} />
-              <ReadOnly label="Số dư hoa hồng" value={formatVnd(0)} hint="Xem chi tiết ở trang Rút tiền" />
+              <ReadOnly label="Mã cộng tác viên" value={affiliate.affiliate_code || "—"} />
+              <ReadOnly label="Email đăng nhập" value={affiliate.email || user?.email || "—"} />
+              <ReadOnly
+                label="Tỷ lệ hoa hồng"
+                value={`${Math.round((affiliate.commission_rate ?? 0) * 100)}%`}
+              />
+              <ReadOnly
+                label="Trạng thái"
+                value={AFFILIATE_STATUS_LABEL[affiliate.status] || affiliate.status}
+              />
+              <ReadOnly
+                label="Vai trò"
+                value={affiliate.role === "admin" ? "Quản trị" : "Cộng tác viên"}
+              />
+              <ReadOnly
+                label="Tổng hoa hồng tích luỹ"
+                value={formatVnd(affiliate.total_earnings ?? 0)}
+                hint="Xem chi tiết ở trang Rút tiền"
+              />
             </dl>
           </section>
 
@@ -83,16 +103,35 @@ export function ProfilePage() {
             <h2 className="font-display text-lg font-semibold">Thông tin của bạn</h2>
             <div className="space-y-2">
               <Label htmlFor="full_name">Họ và tên</Label>
-              <Input id="full_name" className="h-12" value={form.full_name} onChange={set("full_name")} />
+              <Input
+                id="full_name"
+                required
+                className="h-12"
+                value={form.full_name}
+                onChange={set("full_name")}
+              />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="phone">Số điện thoại</Label>
-                <Input id="phone" inputMode="tel" className="h-12" value={form.phone} onChange={set("phone")} />
+                <Input
+                  id="phone"
+                  inputMode="tel"
+                  required
+                  className="h-12"
+                  value={form.phone}
+                  onChange={set("phone")}
+                />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="zalo">Số Zalo</Label>
-                <Input id="zalo" inputMode="tel" className="h-12" value={form.zalo} onChange={set("zalo")} />
+                <Label htmlFor="zalo_id">Số Zalo</Label>
+                <Input
+                  id="zalo_id"
+                  inputMode="tel"
+                  className="h-12"
+                  value={form.zalo_id}
+                  onChange={set("zalo_id")}
+                />
               </div>
             </div>
 
@@ -100,26 +139,34 @@ export function ProfilePage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="bank_name">Ngân hàng</Label>
-                <Input id="bank_name" className="h-12" value={form.bank_name} onChange={set("bank_name")} />
+                <Input
+                  id="bank_name"
+                  className="h-12"
+                  value={form.bank_name}
+                  onChange={set("bank_name")}
+                  placeholder="vd: Vietcombank, MB Bank..."
+                />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="bank_account_number">Số tài khoản</Label>
+                <Label htmlFor="bank_account">Số tài khoản</Label>
                 <Input
-                  id="bank_account_number"
+                  id="bank_account"
                   inputMode="numeric"
                   className="h-12"
-                  value={form.bank_account_number}
-                  onChange={set("bank_account_number")}
+                  value={form.bank_account}
+                  onChange={set("bank_account")}
+                  placeholder="Số tài khoản nhận tiền"
                 />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="bank_account_name">Chủ tài khoản</Label>
+              <Label htmlFor="bank_holder">Chủ tài khoản</Label>
               <Input
-                id="bank_account_name"
+                id="bank_holder"
                 className="h-12"
-                value={form.bank_account_name}
-                onChange={set("bank_account_name")}
+                value={form.bank_holder}
+                onChange={set("bank_holder")}
+                placeholder="Tên in trên thẻ/tài khoản (viết hoa)"
               />
             </div>
 
@@ -148,3 +195,4 @@ function ReadOnly({ label, value, hint }: { label: string; value: string; hint?:
     </div>
   );
 }
+

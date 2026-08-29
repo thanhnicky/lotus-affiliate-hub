@@ -15,24 +15,24 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { CopyButton } from "@/components/CopyButton";
 import { Button } from "@/components/ui/button";
 import { CardsSkeleton, EmptyState, ErrorState } from "@/components/states";
-import { useProfile } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { CHANNEL_LABEL, linksService } from "@/services";
 import { formatDate, formatNumber, formatVnd } from "@/lib/format";
 
 export function DashboardPage() {
-  const { data: profile, session } = useProfile();
-  const userId = session?.user_id;
+  const { affiliate } = useAuth();
+  const affiliateId = affiliate?.id;
 
   const statsQuery = useQuery({
-    queryKey: ["stats", userId],
-    queryFn: () => linksService.getDashboardStats(userId!),
-    enabled: Boolean(userId),
+    queryKey: ["stats", affiliateId],
+    queryFn: () => linksService.getDashboardStats(affiliateId!),
+    enabled: Boolean(affiliateId),
   });
 
   const linksQuery = useQuery({
-    queryKey: ["links", userId],
-    queryFn: () => linksService.listLinks(userId!),
-    enabled: Boolean(userId),
+    queryKey: ["links", affiliateId],
+    queryFn: () => linksService.listLinks(affiliateId!),
+    enabled: Boolean(affiliateId),
   });
 
   const stats = statsQuery.data;
@@ -40,7 +40,7 @@ export function DashboardPage() {
 
   return (
     <AppLayout
-      title={`Xin chào, ${profile?.full_name?.split(" ").slice(-1)[0] || "cộng tác viên"} 👋`}
+      title={`Xin chào, ${affiliate?.full_name?.split(" ").slice(-1)[0] || "cộng tác viên"} 👋`}
       description="Theo dõi hiệu quả tiếp thị sơn Lotus của bạn."
       actions={
         <Button asChild className="h-11">
@@ -57,14 +57,30 @@ export function DashboardPage() {
         <CardsSkeleton count={2} />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-          <StatCard icon={<MousePointerClick className="h-4 w-4" />} label="Lượt click" value={formatNumber(stats!.clicks)} />
-          <StatCard icon={<UserPlus className="h-4 w-4" />} label="Lead" value={formatNumber(stats!.leads)} />
-          <StatCard icon={<ShoppingBag className="h-4 w-4" />} label="Đơn hàng" value={formatNumber(stats!.orders)} />
-          <StatCard icon={<Clock className="h-4 w-4" />} label="Hoa hồng chờ duyệt" value={formatVnd(stats!.pending_commission)} />
+          <StatCard
+            icon={<MousePointerClick className="h-4 w-4" />}
+            label="Lượt click"
+            value={formatNumber(stats?.clicks ?? 0)}
+          />
+          <StatCard
+            icon={<UserPlus className="h-4 w-4" />}
+            label="Lead"
+            value={formatNumber(stats?.leads ?? 0)}
+          />
+          <StatCard
+            icon={<ShoppingBag className="h-4 w-4" />}
+            label="Đơn hàng"
+            value={formatNumber(stats?.orders ?? 0)}
+          />
+          <StatCard
+            icon={<Clock className="h-4 w-4" />}
+            label="Hoa hồng chờ duyệt"
+            value={formatVnd(stats?.pending_commission ?? 0)}
+          />
           <StatCard
             icon={<Wallet className="h-4 w-4" />}
             label="Hoa hồng có thể rút"
-            value={formatVnd(stats!.available_commission)}
+            value={formatVnd(stats?.available_commission ?? 0)}
             highlight
           />
         </div>
@@ -95,30 +111,33 @@ export function DashboardPage() {
           />
         ) : (
           <ul className="grid gap-3">
-            {recent.map((link) => (
-              <li key={link.id} className="rounded-2xl border border-border/70 bg-card p-4 shadow-card">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-medium">{link.landing_page_name}</span>
-                  <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs text-secondary-foreground">
-                    {CHANNEL_LABEL[link.channel]}
-                  </span>
-                  {link.campaign ? (
-                    <span className="rounded-full bg-accent/10 px-2.5 py-0.5 text-xs text-accent">
-                      {link.campaign}
+            {recent.map((link) => {
+              const url = link.affiliate_url || "";
+              return (
+                <li key={link.id} className="rounded-2xl border border-border/70 bg-card p-4 shadow-card">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-medium">{link.landing_page_name || "Sơn Lotus"}</span>
+                    <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs text-secondary-foreground">
+                      {CHANNEL_LABEL[link.channel] || link.channel}
                     </span>
-                  ) : null}
-                  <span className="ml-auto text-xs text-muted-foreground">
-                    {formatDate(link.created_at)} · {formatNumber(link.clicks)} click
-                  </span>
-                </div>
-                <div className="mt-3 flex items-center gap-2">
-                  <code className="min-w-0 flex-1 truncate rounded-lg bg-muted px-3 py-2 text-xs">
-                    {link.full_url}
-                  </code>
-                  <CopyButton value={link.full_url} />
-                </div>
-              </li>
-            ))}
+                    {link.campaign_name ? (
+                      <span className="rounded-full bg-accent/10 px-2.5 py-0.5 text-xs text-accent">
+                        {link.campaign_name}
+                      </span>
+                    ) : null}
+                    <span className="ml-auto text-xs text-muted-foreground">
+                      {formatDate(link.created_at)} · {formatNumber(link.clicks ?? 0)} click
+                    </span>
+                  </div>
+                  <div className="mt-3 flex items-center gap-2">
+                    <code className="min-w-0 flex-1 truncate rounded-lg bg-muted px-3 py-2 text-xs">
+                      {url}
+                    </code>
+                    <CopyButton value={url} />
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>
@@ -153,3 +172,4 @@ function StatCard({
     </div>
   );
 }
+

@@ -4,13 +4,13 @@ import { LotusMark } from "@/components/LotusMark";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/CopyButton";
 import { LoadingState } from "@/components/states";
-import { useProfile, useSignOut } from "@/hooks/useAuth";
+import { useAuth, useSignOut } from "@/hooks/useAuth";
 import { AFFILIATE_STATUS_LABEL, SUPPORT_ZALO, SUPPORT_ZALO_URL } from "@/services";
 
 export function PendingPage() {
-  const { data: profile, isLoading } = useProfile();
+  const { affiliate, isLoading } = useAuth();
   const signOut = useSignOut();
-  const suspended = profile?.status === "suspended";
+  const suspended = affiliate?.status === "suspended";
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-soft px-4 py-12">
@@ -25,7 +25,7 @@ export function PendingPage() {
           <>
             <span className="mt-6 inline-flex items-center gap-2 rounded-full bg-warning/15 px-3 py-1 text-xs font-semibold text-warning-foreground">
               <Clock className="h-3.5 w-3.5" />
-              {AFFILIATE_STATUS_LABEL[profile?.status ?? "pending"]}
+              {AFFILIATE_STATUS_LABEL[affiliate?.status ?? "pending"] || affiliate?.status}
             </span>
 
             <h1 className="mt-4 font-display text-2xl font-semibold tracking-tight">
@@ -41,9 +41,9 @@ export function PendingPage() {
               <p className="text-xs text-muted-foreground">Mã cộng tác viên của bạn</p>
               <div className="mt-1 flex items-center justify-center gap-2">
                 <span className="font-display text-xl font-semibold tracking-tight">
-                  {profile?.affiliate_code ?? "—"}
+                  {affiliate?.affiliate_code ?? "—"}
                 </span>
-                <CopyButton value={profile?.affiliate_code ?? ""} label="Sao chép mã CTV" variant="ghost" />
+                <CopyButton value={affiliate?.affiliate_code ?? ""} label="Sao chép mã CTV" variant="ghost" />
               </div>
             </div>
 
@@ -65,3 +65,4 @@ export function PendingPage() {
     </div>
   );
 }
+
