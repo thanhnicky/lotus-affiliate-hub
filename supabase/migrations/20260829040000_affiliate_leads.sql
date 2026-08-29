@@ -40,3 +40,14 @@ CREATE INDEX idx_affiliate_leads_code
 -- policy, so lead_data can only ever be written by the server via service_role.
 CREATE POLICY "own leads select" ON public.affiliate_leads
   FOR SELECT TO authenticated USING (auth.uid() = affiliate_id);
+
+-- The pre-existing lead_source column was constrained to a small, incomplete
+-- set of channel names ('form','zalo_click','hotline_click','manual') — the
+-- same job the new lead_type enum now does properly, with the full and
+-- correctly-named set of four touchpoints (including email_click, which this
+-- check didn't even allow). Keeping both would mean two conflicting sources of
+-- truth for "which channel". Dropping the check lets lead_source hold what its
+-- name says: the landing page URL the lead came from, per the track-lead API
+-- contract. lead_type remains the single source of truth for the channel.
+ALTER TABLE public.affiliate_leads DROP CONSTRAINT affiliate_leads_lead_source_check;
+ALTER TABLE public.affiliate_leads ALTER COLUMN lead_source DROP DEFAULT;
