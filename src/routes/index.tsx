@@ -61,7 +61,7 @@ const FAQS = [
   },
   {
     q: "Tôi bán qua kênh nào?",
-    a: "Bạn có thể chia sẻ link qua Facebook, Zalo, TikTok hoặc các kênh cá nhân phù hợp; không chạy quảng cáo trả phí nếu chưa được Lotus cho phép.",
+    a: "Bạn có thể chia sẻ link qua Facebook, Zalo, Reels hoặc các kênh cá nhân phù hợp; không chạy quảng cáo trả phí nếu chưa được Lotus cho phép.",
   },
 ];
 

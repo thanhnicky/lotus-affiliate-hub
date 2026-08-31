@@ -85,7 +85,7 @@ export function MarketingMaterialsPage() {
               "Mở CapCut → New Project → thêm ảnh/video",
               "Thêm text: tên sản phẩm + 1 tính năng nổi bật",
               "Thêm voice (ghi âm hoặc AI voice)",
-              "Export 1080p, dọc 9:16 cho TikTok/Reels",
+              "Export 1080p, dọc 9:16 cho Reels/Shorts",
             ]}
           />
           <GuideCard

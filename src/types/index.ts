@@ -15,8 +15,9 @@ export type ShareChannel =
   | "facebook_personal"
   | "facebook_group"
   | "facebook_page"
-  | "tiktok"
-  | "youtube"
+  | "facebook_reels"
+  | "instagram_reels"
+  | "youtube_shorts"
   | "website"
   | "email"
   | "referral"
@@ -38,4 +39,3 @@ export interface AuthSession {
 }
 
 export class ServiceError extends Error {}
-
