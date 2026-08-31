@@ -23,6 +23,8 @@ function mapAdminAffiliate(row: any): AdminAffiliate {
     created_at: row.created_at,
     order_count: Number(row.order_count ?? 0),
     approved_order_count: Number(row.approved_order_count ?? 0),
+    pending_commission: Number(row.pending_commission ?? 0),
+    available_commission: Number(row.available_commission ?? 0),
     paid_commission: Number(row.paid_commission ?? 0),
     last_order_at: row.last_order_at ?? null,
   } as AdminAffiliate;

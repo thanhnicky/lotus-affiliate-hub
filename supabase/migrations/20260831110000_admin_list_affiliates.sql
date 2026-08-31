@@ -1,6 +1,5 @@
--- Admin: list all affiliates with order stats (count, approved, paid commission,
--- last order date). SECURITY DEFINER, admin-only.
--- Returns one row per affiliate with aggregated order metrics.
+-- Admin: list all affiliates with order stats (count, approved, pending/available/paid
+-- commission, last order date). SECURITY DEFINER, admin-only.
 
 CREATE OR REPLACE FUNCTION public.admin_list_affiliates()
 RETURNS TABLE (
@@ -24,6 +23,8 @@ RETURNS TABLE (
   approved_at timestamptz,
   order_count bigint,
   approved_order_count bigint,
+  pending_commission numeric,
+  available_commission numeric,
   paid_commission numeric,
   last_order_at timestamptz
 )
@@ -32,7 +33,6 @@ SECURITY DEFINER
 SET search_path = public, pg_temp
 AS $$
 BEGIN
-  -- Admin-only check.
   IF NOT EXISTS (
     SELECT 1 FROM public.affiliates a
     WHERE a.user_id = auth.uid() AND a.role = 'admin'
@@ -47,7 +47,7 @@ BEGIN
     a.affiliate_code,
     a.full_name,
     a.phone,
-    COALESCE(a.email, ''),
+    COALESCE(u.email::text, ''),
     COALESCE(a.zalo_id, ''),
     COALESCE(a.bank_name, ''),
     COALESCE(a.bank_account, ''),
@@ -59,18 +59,23 @@ BEGIN
     COALESCE(a.pending_earnings, 0),
     COALESCE(a.paid_earnings, 0),
     a.created_at,
-    a.approved_at,
+    a.approved_at::timestamptz,
     COALESCE(o.order_count, 0),
     COALESCE(o.approved_order_count, 0),
+    COALESCE(o.pending_commission, 0),
+    COALESCE(o.available_commission, 0),
     COALESCE(o.paid_commission, 0),
     o.last_order_at
   FROM public.affiliates a
+  LEFT JOIN auth.users u ON u.id = a.user_id
   LEFT JOIN LATERAL (
     SELECT
       COUNT(*) AS order_count,
       COUNT(*) FILTER (WHERE commission_status IN ('approved', 'paid')) AS approved_order_count,
+      COALESCE(SUM(commission_amount) FILTER (WHERE commission_status = 'pending'), 0) AS pending_commission,
+      COALESCE(SUM(commission_amount) FILTER (WHERE commission_status = 'approved'), 0) AS available_commission,
       COALESCE(SUM(commission_amount) FILTER (WHERE commission_status = 'paid'), 0) AS paid_commission,
-      MAX(created_at) AS last_order_at
+      MAX(orders.created_at) AS last_order_at
     FROM public.orders
     WHERE affiliate_id = a.id
   ) o ON TRUE

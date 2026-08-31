@@ -88,8 +88,10 @@ export function AdminAffiliatesPage() {
     const total = allAffiliates.length;
     const active = allAffiliates.filter((a) => a.status === "active").length;
     const totalOrders = allAffiliates.reduce((s, a) => s + a.order_count, 0);
+    const totalPending = allAffiliates.reduce((s, a) => s + a.pending_commission, 0);
+    const totalAvailable = allAffiliates.reduce((s, a) => s + a.available_commission, 0);
     const totalPaid = allAffiliates.reduce((s, a) => s + a.paid_commission, 0);
-    return { total, active, totalOrders, totalPaid };
+    return { total, active, totalOrders, totalPending, totalAvailable, totalPaid };
   }, [allAffiliates]);
 
   const handleExport = () => {
@@ -105,6 +107,8 @@ export function AdminAffiliatesPage() {
       "Trạng thái": STATUS_LABEL[a.status],
       "Tổng đơn": a.order_count,
       "Đơn đã duyệt": a.approved_order_count,
+      "Hoa hồng chờ duyệt": a.pending_commission,
+      "Hoa hồng có thể rút": a.available_commission,
       "Hoa hồng đã trả": a.paid_commission,
       "Đơn gần nhất": a.last_order_at ? formatDate(a.last_order_at) : "—",
       "Ngày đăng ký": a.created_at ? formatDate(a.created_at) : "—",
@@ -127,7 +131,7 @@ export function AdminAffiliatesPage() {
       }
     >
       {/* Summary cards */}
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
         <SummaryCard
           icon={<Users className="h-4 w-4" />}
           label="Tổng CTV"
@@ -144,8 +148,18 @@ export function AdminAffiliatesPage() {
           value={formatNumber(summary.totalOrders)}
         />
         <SummaryCard
+          icon={<Clock className="h-4 w-4" />}
+          label="Chờ duyệt"
+          value={formatVnd(summary.totalPending)}
+        />
+        <SummaryCard
           icon={<Wallet className="h-4 w-4" />}
-          label="Hoa hồng đã trả"
+          label="Có thể rút"
+          value={formatVnd(summary.totalAvailable)}
+        />
+        <SummaryCard
+          icon={<Wallet className="h-4 w-4" />}
+          label="Đã trả"
           value={formatVnd(summary.totalPaid)}
           highlight
         />
@@ -209,6 +223,8 @@ export function AdminAffiliatesPage() {
                   <th className="px-4 py-3 font-medium">Thanh toán</th>
                   <th className="px-4 py-3 text-right font-medium">Đơn</th>
                   <th className="px-4 py-3 text-right font-medium">Đã duyệt</th>
+                  <th className="px-4 py-3 text-right font-medium">Chờ duyệt</th>
+                  <th className="px-4 py-3 text-right font-medium">Có thể rút</th>
                   <th className="px-4 py-3 text-right font-medium">Đã trả</th>
                   <th className="px-4 py-3 font-medium">Hoạt động</th>
                   <th className="px-4 py-3 font-medium">Trạng thái</th>
@@ -257,6 +273,10 @@ function AffiliateRow({ affiliate: a }: { affiliate: AdminAffiliate }) {
         </td>
         <td className="px-4 py-3 text-right font-medium">{formatNumber(a.order_count)}</td>
         <td className="px-4 py-3 text-right">{formatNumber(a.approved_order_count)}</td>
+        <td className="px-4 py-3 text-right text-muted-foreground">
+          {formatVnd(a.pending_commission)}
+        </td>
+        <td className="px-4 py-3 text-right">{formatVnd(a.available_commission)}</td>
         <td className="px-4 py-3 text-right font-medium">{formatVnd(a.paid_commission)}</td>
         <td className="px-4 py-3 text-xs text-muted-foreground">
           {a.last_order_at ? (
@@ -274,7 +294,7 @@ function AffiliateRow({ affiliate: a }: { affiliate: AdminAffiliate }) {
       </tr>
       {expanded ? (
         <tr className="border-b border-border/40 bg-muted/20">
-          <td colSpan={8} className="px-4 py-4">
+          <td colSpan={10} className="px-4 py-4">
             <div className="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
               <DetailItem label="Mã CTV" value={a.affiliate_code} />
               <DetailItem label="Zalo" value={a.zalo_id || "—"} />

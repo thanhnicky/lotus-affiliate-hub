@@ -28,6 +28,8 @@ export interface Affiliate {
 export interface AdminAffiliate extends Affiliate {
   order_count: number;
   approved_order_count: number;
+  pending_commission: number;
+  available_commission: number;
   paid_commission: number;
   last_order_at?: string | null;
 }
