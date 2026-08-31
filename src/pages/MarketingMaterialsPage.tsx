@@ -30,7 +30,7 @@ export function MarketingMaterialsPage() {
             </h2>
             <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
               Tải ảnh và video raw về, dùng CapCut / Canva AI để cắt ghép thành video của riêng bạn.
-              Mỗi CTV một phiên bản khác nhau — Facebook, Zalo, TikTok không flag duplicate.
+              Mỗi CTV một phiên bản khác nhau — Facebook, Zalo, Reels không flag duplicate.
             </p>
           </div>
         </div>
