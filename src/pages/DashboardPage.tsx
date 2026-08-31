@@ -213,9 +213,12 @@ export function DashboardPage() {
                   <span>Khu vực: {maskAddress(order.shipping_address ?? "") || "—"}</span>
                   <span>
                     Hoa hồng: {formatVnd(order.commission_amount ?? 0)}
-                    {order.commission_rate !== null ? ` (${order.commission_rate}%)` : ""}
+                    {order.commission_rate !== null
+                      ? ` (${(order.commission_rate * 100).toFixed(1).replace(/\.0$/, "")}%)`
+                      : ""}
                   </span>
-                  <span>Mã đơn: {order.order_code}</span>
+                  <span>Landing page: {order.landing_page_name ?? "—"}</span>
+                  <span className="truncate">Mã đơn: {order.order_code}</span>
                 </div>
               </li>
             ))}

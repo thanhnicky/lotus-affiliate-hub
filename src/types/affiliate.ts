@@ -121,6 +121,8 @@ export interface Order {
   notes: string | null;
   created_at: string;
   updated_at: string;
+  /** Populated only by listMyOrders via a join to affiliate_links. */
+  landing_page_name?: string | null;
 }
 
 export interface CreateOrderInput {

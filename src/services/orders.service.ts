@@ -40,18 +40,22 @@ export const ordersService = {
     return (data ?? []).map(mapOrder);
   },
 
-  /** Orders for a specific affiliate (the CTV's own orders), newest first. */
+  /** Orders for a specific affiliate (the CTV's own orders), newest first.
+   *  Joins affiliate_links to surface the landing page name per order. */
   async listMyOrders(affiliateId: string): Promise<Order[]> {
     const { data, error } = await supabase
       .from("orders")
-      .select("*")
+      .select("*, affiliate_links(landing_page_name)")
       .eq("affiliate_id", affiliateId)
       .order("created_at", { ascending: false });
 
     if (error) {
       throw new ServiceError(error.message || "Không thể tải đơn hàng của bạn.");
     }
-    return (data ?? []).map(mapOrder);
+    return (data ?? []).map((row: any) => ({
+      ...mapOrder(row),
+      landing_page_name: row.affiliate_links?.landing_page_name ?? null,
+    }));
   },
 
   /** Admin-only: creates an order and applies the commission bookkeeping atomically. */
