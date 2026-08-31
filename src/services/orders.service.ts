@@ -41,11 +41,11 @@ export const ordersService = {
   },
 
   /** Orders for a specific affiliate (the CTV's own orders), newest first.
-   *  Joins affiliate_links to surface the landing page name per order. */
+   *  Joins affiliate_links -> landing_pages to surface the landing page name per order. */
   async listMyOrders(affiliateId: string): Promise<Order[]> {
     const { data, error } = await supabase
       .from("orders")
-      .select("*, affiliate_links(landing_page_name)")
+      .select("*, affiliate_links(landing_pages(name))")
       .eq("affiliate_id", affiliateId)
       .order("created_at", { ascending: false });
 
@@ -54,7 +54,7 @@ export const ordersService = {
     }
     return (data ?? []).map((row: any) => ({
       ...mapOrder(row),
-      landing_page_name: row.affiliate_links?.landing_page_name ?? null,
+      landing_page_name: row.affiliate_links?.landing_pages?.name ?? null,
     }));
   },
 
