@@ -59,15 +59,22 @@ export async function handleNotifyCommission(request: Request): Promise<Response
       ? process.env["VITE_SUPABASE_URL"] || process.env["SUPABASE_URL"]
       : undefined) || import.meta.env.VITE_SUPABASE_URL;
 
-  if (!supabaseUrl) {
+  // Anon/public key — required as apikey header for Supabase auth API
+  const anonKey =
+    (typeof process !== "undefined" && process.env
+      ? process.env["VITE_SUPABASE_ANON_KEY"] || process.env["SUPABASE_ANON_KEY"]
+      : undefined) || import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !anonKey) {
     return json({ error: "Server config error" }, 500);
   }
 
-  // Verify the token and check admin role
+  // Verify the token via Supabase auth API
+  // apikey must be the project anon key, Authorization is the user JWT
   const userRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
     headers: {
       Authorization: `Bearer ${token}`,
-      apikey: token,
+      apikey: anonKey,
     },
   });
   if (!userRes.ok) {
