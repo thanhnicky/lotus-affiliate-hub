@@ -94,7 +94,7 @@ export function MarketingMaterialsPage() {
             description="Đăng bài với ảnh sản phẩm + hook câu khách."
             steps={[
               "Tải ảnh HD sản phẩm về",
-              "Viết hook: câu hỏi trúng nỗi đau khách (vd: nhà mới sơn bị mốc?)",
+              "Viết hook: câu hỏi trúng nỗi đau khách",
               "Giới thiệu sản phẩm + 2 tính năng chính",
               "Gắn link affiliate của bạn ở cuối bài",
               "Hashtag: #sonlotus #sonnoithat #thietkenha",
