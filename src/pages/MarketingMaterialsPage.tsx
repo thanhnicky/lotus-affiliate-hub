@@ -1,13 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import {
-  Download,
-  FileText,
-  ImageIcon,
-  Video,
-  Lightbulb,
-  ExternalLink,
-  Sparkles,
-} from "lucide-react";
+import { FileText, ImageIcon, Video, Lightbulb, ExternalLink, Sparkles } from "lucide-react";
 
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -107,56 +99,6 @@ export function MarketingMaterialsPage() {
               "Gắn link affiliate của bạn ở cuối bài",
               "Hashtag: #sonlotus #sonnoithat #thietkenha",
             ]}
-          />
-        </div>
-      </section>
-
-      {/* Prompt library */}
-      <section className="mt-10">
-        <h2 className="font-display text-lg font-semibold">Prompt AI sẵn dùng</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Copy prompt này vào ChatGPT / Claude / Gemini để tạo script video.
-        </p>
-
-        <div className="mt-6 space-y-4">
-          <PromptCard
-            title="Script video TikTok 30s — Sơn nội thất"
-            prompt={`Bạn là chuyên gia content TikTok. Viết script video 30 giây giới thiệu sơn nội thất Lotus Premium cho cộng tác viên bán hàng.
-
-Yêu cầu:
-- Hook 3 giây đầu gây tò mò
-- 3 tính năng chính: lau chùi dễ, an toàn gia đình, bền màu
-- Giọng điệu gần gũi, tự nhiên, không như quảng cáo
-- Kết thúc: kêu gọi click link bio
-
-Format: [Giây] [Hình ảnh] [Voice/Text]`}
-          />
-          <PromptCard
-            title="Bài đăng Facebook — Sơn ngoại thất"
-            prompt={`Viết bài đăng Facebook 150 từ giới thiệu sơn ngoại thất Lotus Weather Shield.
-
-Đối tượng: chủ nhà đang xây/sửa nhà ở miền Nam (nắng mưa nhiều)
-Giọng điệu: chia sẻ kinh nghiệm, như người trong ngành
-Nội dung:
-- Mở: vấn đề sơn ngoại thất dễ bong tróc sau 2-3 năm
-- Giải pháp: Lotus Weather Shield chống nắng mưa, bền màu 10 năm
-- Kêu gọi: inbox hoặc click link để được tư vấn
-
-Kết thúc bằng 3 hashtag liên quan.`}
-          />
-          <PromptCard
-            title="Kịch bản video ngắn — Chống thấm Lotus"
-            prompt={`Viết kịch bản video 45 giây về sơn chống thấm Lotus Max.
-
-Bối cảnh: quay thực tế tường bị thấm, sau khi xử lý
-Cấu trúc:
-1. Vấn đề (10s): tường mốc, bong tróc, ố vàng
-2. Nguyên nhân (10s): thấm từ ngoài vào, không xử lý gốc
-3. Giải pháp (15s): Lotus Max chống thấm ngược, áp dụng cho tường + sân thượng
-4. Kết quả (5s): tường khô, sạch
-5. CTA (5s): click link để mua
-
-Viết ngắn gọn, dễ quay bằng điện thoại.`}
           />
         </div>
       </section>
@@ -268,30 +210,6 @@ function GuideCard({
           </li>
         ))}
       </ol>
-    </div>
-  );
-}
-
-/** Prompt card with copy button */
-function PromptCard({ title, prompt }: { title: string; prompt: string }) {
-  return (
-    <div className="rounded-2xl border border-border/50 bg-card p-5">
-      <div className="flex items-center justify-between gap-3">
-        <h3 className="font-display text-sm font-semibold">{title}</h3>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            void navigator.clipboard.writeText(prompt);
-          }}
-        >
-          <Download className="mr-1.5 h-4 w-4" />
-          Copy
-        </Button>
-      </div>
-      <pre className="mt-3 overflow-x-auto rounded-lg bg-muted/60 p-3 text-xs leading-relaxed text-muted-foreground whitespace-pre-wrap">
-        {prompt}
-      </pre>
     </div>
   );
 }
