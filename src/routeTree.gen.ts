@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as ChinhSachRouteImport } from './routes/chinh-sach'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as AuthenticatedAdminOrdersRouteImport } from './routes/_authenticated/admin-orders'
@@ -30,6 +31,11 @@ const IndexRoute = IndexRouteImport.update({
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChinhSachRoute = ChinhSachRouteImport.update({
+  id: '/chinh-sach',
+  path: '/chinh-sach',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -92,6 +98,7 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/chinh-sach': typeof ChinhSachRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/admin-orders': typeof AuthenticatedAdminOrdersRoute
@@ -106,6 +113,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/chinh-sach': typeof ChinhSachRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/admin-orders': typeof AuthenticatedAdminOrdersRoute
@@ -122,6 +130,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/chinh-sach': typeof ChinhSachRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/_authenticated/admin-orders': typeof AuthenticatedAdminOrdersRoute
@@ -138,6 +147,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/chinh-sach'
     | '/login'
     | '/register'
     | '/admin-orders'
@@ -152,6 +162,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/chinh-sach'
     | '/login'
     | '/register'
     | '/admin-orders'
@@ -167,6 +178,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/chinh-sach'
     | '/login'
     | '/register'
     | '/_authenticated/admin-orders'
@@ -183,6 +195,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  ChinhSachRoute: typeof ChinhSachRoute
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
@@ -202,6 +215,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/chinh-sach': {
+      id: '/chinh-sach'
+      path: '/chinh-sach'
+      fullPath: '/chinh-sach'
+      preLoaderRoute: typeof ChinhSachRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -312,6 +332,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  ChinhSachRoute: ChinhSachRoute,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
   AuthCallbackRoute: AuthCallbackRoute,
