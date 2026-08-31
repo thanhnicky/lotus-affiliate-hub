@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowRight,
   BadgePercent,
@@ -14,10 +15,14 @@ import {
   MousePointerClick,
   PackageCheck,
   Users,
+  ExternalLink,
+  ChevronDown,
 } from "lucide-react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { LotusMark } from "@/components/LotusMark";
+import { linksService } from "@/services";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -106,7 +111,32 @@ const PRODUCTS = [
   { name: "Chống thấm Lotus Max", desc: "Giải pháp chống thấm tường, sân thượng" },
 ];
 
+const FAQS = [
+  {
+    q: "Tôi không rành kỹ thuật sơn, có làm được không?",
+    a: "Có. Bạn chỉ cần giới thiệu khách đúng nhu cầu; Lotus hỗ trợ tư vấn hệ sơn, màu sắc, quy trình và báo giá.",
+  },
+  {
+    q: "Tôi có phải nhập hàng hoặc giao hàng không?",
+    a: "Không. Lotus xử lý tư vấn, xác nhận đơn, giao hàng và hậu mãi; CTV tập trung kết nối khách hàng.",
+  },
+  {
+    q: "Khi nào tôi nhận được hoa hồng?",
+    a: "Hoa hồng được ghi nhận khi đơn giao thành công, sau đó được duyệt và thanh toán theo lịch từ ngày 1 đến ngày 5 hằng tháng.",
+  },
+  {
+    q: "Tôi bán qua kênh nào?",
+    a: "Bạn có thể chia sẻ link qua Facebook, Zalo, TikTok hoặc các kênh cá nhân phù hợp; không chạy quảng cáo trả phí nếu chưa được Lotus cho phép.",
+  },
+];
+
 function Home() {
+  const pagesQuery = useQuery({
+    queryKey: ["landing-pages"],
+    queryFn: () => linksService.listLandingPages(),
+  });
+  const landingPages = pagesQuery.data ?? [];
+
   return (
     <div className="flex min-h-screen flex-col bg-soft">
       <header className="mx-auto flex h-20 w-full max-w-6xl items-center px-4">
@@ -251,14 +281,81 @@ function Home() {
             </p>
           </div>
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {PRODUCTS.map((p) => (
-              <div
-                key={p.name}
-                className="rounded-2xl border border-border/70 bg-card p-5 shadow-card"
-              >
-                <h3 className="font-display text-sm font-semibold leading-snug">{p.name}</h3>
-                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{p.desc}</p>
-              </div>
+            {landingPages.length > 0
+              ? landingPages.map((p) => {
+                  const thumbnail = p.thumbnail_url;
+                  const previewUrl = p.base_url ?? "";
+                  return (
+                    <div
+                      key={p.id}
+                      className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-card"
+                    >
+                      <div className="relative aspect-video w-full overflow-hidden bg-muted">
+                        {thumbnail ? (
+                          <img
+                            src={thumbnail}
+                            alt={p.name}
+                            className="h-full w-full object-cover"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
+                            <span className="text-2xl font-display font-bold text-primary/30">
+                              {p.name.charAt(0)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-4">
+                        <h3 className="font-display text-sm font-semibold leading-snug">
+                          {p.name}
+                        </h3>
+                        {p.description ? (
+                          <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                            {p.description}
+                          </p>
+                        ) : null}
+                        {previewUrl ? (
+                          <a
+                            href={previewUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            Xem trước sản phẩm
+                          </a>
+                        ) : null}
+                      </div>
+                    </div>
+                  );
+                })
+              : // Fallback to static list if landing pages haven't loaded
+                PRODUCTS.map((p) => (
+                  <div
+                    key={p.name}
+                    className="rounded-2xl border border-border/70 bg-card p-5 shadow-card"
+                  >
+                    <h3 className="font-display text-sm font-semibold leading-snug">{p.name}</h3>
+                    <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{p.desc}</p>
+                  </div>
+                ))}
+          </div>
+        </section>
+
+        {/* ===== FAQ ===== */}
+        <section className="mt-20">
+          <div className="text-center">
+            <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">
+              Câu hỏi thường gặp
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground md:text-base">
+              Những thắc mắc phổ biến nhất của cộng tác viên khi mới tham gia.
+            </p>
+          </div>
+          <div className="mx-auto mt-10 max-w-3xl space-y-3">
+            {FAQS.map((faq, i) => (
+              <FaqItem key={i} q={faq.q} a={faq.a} />
             ))}
           </div>
         </section>
@@ -329,6 +426,31 @@ function Home() {
           </div>
         </div>
       </footer>
+    </div>
+  );
+}
+
+/** Collapsible FAQ item. */
+function FaqItem({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-card">
+      <button
+        type="button"
+        className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+      >
+        <span className="font-medium text-sm md:text-base">{q}</span>
+        <ChevronDown
+          className={`h-5 w-5 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+      {open ? (
+        <div className="border-t border-border/40 px-5 py-4 text-sm leading-relaxed text-muted-foreground">
+          {a}
+        </div>
+      ) : null}
     </div>
   );
 }
