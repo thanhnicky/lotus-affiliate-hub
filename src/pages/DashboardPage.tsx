@@ -183,38 +183,89 @@ export function DashboardPage() {
             }
           />
         ) : (
-          <ul className="grid gap-3">
-            {recent.map((link) => {
-              const url = link.affiliate_url || "";
-              return (
-                <li
-                  key={link.id}
-                  className="rounded-2xl border border-border/70 bg-card p-4 shadow-card"
-                >
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-medium">{link.landing_page_name || "Sơn Lotus"}</span>
-                    <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs text-secondary-foreground">
-                      {CHANNEL_LABEL[link.channel] || link.channel}
-                    </span>
-                    {link.campaign_name ? (
-                      <span className="rounded-full bg-accent/10 px-2.5 py-0.5 text-xs text-accent">
-                        {link.campaign_name}
+          <div className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-card">
+            {/* Desktop: compact table */}
+            <table className="hidden w-full text-sm sm:table">
+              <thead>
+                <tr className="border-b border-border/70 text-left text-xs text-muted-foreground">
+                  <th className="px-4 py-2.5 font-medium">Landing page</th>
+                  <th className="px-4 py-2.5 font-medium">Kênh</th>
+                  <th className="px-4 py-2.5 font-medium">Click</th>
+                  <th className="px-4 py-2.5 font-medium">Ngày tạo</th>
+                  <th className="px-4 py-2.5 font-medium text-right">Link</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recent.map((link) => {
+                  const url = link.affiliate_url || "";
+                  return (
+                    <tr key={link.id} className="border-b border-border/40 last:border-0">
+                      <td className="px-4 py-3">
+                        <span className="font-medium">{link.landing_page_name || "Sơn Lotus"}</span>
+                        {link.campaign_name ? (
+                          <span className="ml-2 rounded-full bg-accent/10 px-2 py-0.5 text-xs text-accent">
+                            {link.campaign_name}
+                          </span>
+                        ) : null}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs text-secondary-foreground">
+                          {CHANNEL_LABEL[link.channel] || link.channel}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {formatNumber(link.clicks ?? 0)}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {formatDate(link.created_at)}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="inline-flex items-center gap-2">
+                          <code className="max-w-[200px] truncate rounded bg-muted px-2 py-1 text-xs">
+                            {url}
+                          </code>
+                          <CopyButton value={url} />
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+
+            {/* Mobile: compact cards */}
+            <ul className="divide-y divide-border/40 sm:hidden">
+              {recent.map((link) => {
+                const url = link.affiliate_url || "";
+                return (
+                  <li key={link.id} className="p-3">
+                    <div className="flex items-center gap-2">
+                      <span className="line-clamp-1 flex-1 font-medium text-sm">
+                        {link.landing_page_name || "Sơn Lotus"}
                       </span>
-                    ) : null}
-                    <span className="ml-auto text-xs text-muted-foreground">
-                      {formatDate(link.created_at)} · {formatNumber(link.clicks ?? 0)} click
-                    </span>
-                  </div>
-                  <div className="mt-3 flex items-center gap-2">
-                    <code className="min-w-0 flex-1 truncate rounded-lg bg-muted px-3 py-2 text-xs">
-                      {url}
-                    </code>
-                    <CopyButton value={url} />
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+                      <span className="text-xs text-muted-foreground">
+                        {formatNumber(link.clicks ?? 0)} click
+                      </span>
+                    </div>
+                    <div className="mt-1.5 flex items-center gap-2">
+                      <span className="rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">
+                        {CHANNEL_LABEL[link.channel] || link.channel}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {formatDate(link.created_at)}
+                      </span>
+                    </div>
+                    <div className="mt-2 flex items-center gap-2">
+                      <code className="min-w-0 flex-1 truncate rounded bg-muted px-2 py-1 text-xs">
+                        {url}
+                      </code>
+                      <CopyButton value={url} />
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
         )}
       </section>
 
