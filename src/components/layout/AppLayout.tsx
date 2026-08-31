@@ -52,7 +52,7 @@ export function AppLayout({
     <div className="min-h-screen bg-soft">
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-border/70 bg-background/90 px-4 py-6 lg:flex">
         <Link to="/dashboard" className="flex items-center gap-2 px-2">
-          <LotusMark className="h-9 w-9" />
+          <LotusMark className="h-10 w-auto" />
           <span className="font-display text-lg font-semibold leading-tight tracking-tight">
             Lotus Affiliate
             <span className="block text-xs font-normal text-muted-foreground">Portal CTV</span>
@@ -89,7 +89,7 @@ export function AppLayout({
         <header className="sticky top-0 z-30 border-b border-border/70 bg-background/85 backdrop-blur">
           <div className="mx-auto flex h-16 max-w-5xl items-center gap-3 px-4">
             <Link to="/dashboard" className="flex items-center gap-2 lg:hidden">
-              <LotusMark className="h-8 w-8" />
+              <LotusMark className="h-8 w-auto" />
               <span className="font-display text-base font-semibold">Lotus Affiliate</span>
             </Link>
 
