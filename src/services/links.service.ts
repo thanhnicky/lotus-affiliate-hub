@@ -18,10 +18,7 @@ export const linksService = {
 
       if (error) {
         // Fallback nếu schema không có cột sort_order
-        const fallback = await supabase
-          .from("landing_pages")
-          .select("*")
-          .eq("is_active", true);
+        const fallback = await supabase.from("landing_pages").select("*").eq("is_active", true);
         if (fallback.error) throw new ServiceError(fallback.error.message);
         return (fallback.data ?? []) as LandingPage[];
       }
@@ -142,18 +139,34 @@ export const linksService = {
 
       const { data: links } = await supabase
         .from("affiliate_links")
-        .select("clicks, conversions")
+        .select("id, clicks")
         .eq("affiliate_id", affiliateId);
 
       const totalClicks = (links ?? []).reduce(
         (acc: number, cur: any) => acc + (Number(cur.clicks) || 0),
-        0
+        0,
       );
-      const totalConversions = (links ?? []).reduce(
-        (acc: number, cur: any) =>
-          acc + (Number(cur.conversions ?? cur.orders ?? cur.leads) || 0),
-        0
-      );
+
+      // Leads = count of rows in affiliate_leads for this affiliate's links.
+      // Each lead_type (zalo/phone/email/form_submit) is deduped server-side
+      // before insert, so a raw count here is the real lead count.
+      const linkIds = (links ?? []).map((l: any) => l.id);
+      let totalLeads = 0;
+      if (linkIds.length > 0) {
+        const { count, error: leadErr } = await supabase
+          .from("affiliate_leads")
+          .select("id", { count: "exact", head: true })
+          .in("affiliate_link_id", linkIds);
+        if (!leadErr) totalLeads = count ?? 0;
+      }
+
+      // Orders = count of rows in orders for this affiliate (any status).
+      let totalOrders = 0;
+      const { count: orderCount, error: orderErr } = await supabase
+        .from("orders")
+        .select("id", { count: "exact", head: true })
+        .eq("affiliate_id", affiliateId);
+      if (!orderErr) totalOrders = orderCount ?? 0;
 
       const totalEarnings = Number(affiliate?.total_earnings ?? 0);
       const pendingEarnings = Number(affiliate?.pending_earnings ?? 0);
@@ -162,8 +175,8 @@ export const linksService = {
 
       return {
         clicks: totalClicks,
-        leads: totalConversions,
-        orders: totalConversions,
+        leads: totalLeads,
+        orders: totalOrders,
         pending_commission: pendingEarnings,
         available_commission: available,
       };
@@ -178,4 +191,3 @@ export const linksService = {
     }
   },
 };
-
