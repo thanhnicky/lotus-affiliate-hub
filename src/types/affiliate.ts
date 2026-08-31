@@ -32,6 +32,8 @@ export interface LandingPage {
   base_url?: string;
   is_active?: boolean;
   sort_order?: number;
+  thumbnail_url?: string | null;
+  description?: string;
   created_at?: string;
 }
 
