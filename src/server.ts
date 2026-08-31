@@ -5,6 +5,7 @@ import { renderErrorPage } from "./lib/error-page";
 import { handleTrackClick } from "./server/trackClick";
 import { handleTrackLead } from "./server/trackLead";
 import { handleSyncOrder } from "./server/syncOrder";
+import { handleNotifyCommission } from "./server/notifyCommission";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -60,6 +61,9 @@ export default {
       if (url.pathname === "/api/affiliate/sync-order") {
         return await handleSyncOrder(request);
       }
+      if (url.pathname === "/api/affiliate/notify-commission") {
+        return await handleNotifyCommission(request);
+      }
 
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
@@ -73,4 +77,3 @@ export default {
     }
   },
 };
-

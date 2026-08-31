@@ -91,7 +91,10 @@ export const ordersService = {
     return mapOrder(data);
   },
 
-  /** Admin-only: approve, cancel, or mark paid the commission on an order. */
+  /** Admin-only: approve, cancel, or mark paid the commission on an order.
+   *  Also triggers an email notification to the CTV via the notify-commission
+   *  server endpoint. Email failure is non-blocking (status update already
+   *  succeeded). */
   async updateCommissionStatus(
     orderId: string,
     status: Extract<CommissionStatus, "approved" | "cancelled" | "paid">,
@@ -106,6 +109,39 @@ export const ordersService = {
     if (error) {
       throw new ServiceError(error.message || "Không thể cập nhật đơn hàng.");
     }
+
+    // Fire-and-forget email notification (non-blocking)
+    void this.notifyCommission(orderId, status, note).catch((e) => {
+      console.warn("[orders] notify-commission failed:", e?.message);
+    });
+
     return mapOrder(data);
+  },
+
+  /** Sends an email notification to the CTV about a commission status change. */
+  async notifyCommission(
+    orderId: string,
+    status: Extract<CommissionStatus, "approved" | "cancelled" | "paid">,
+    note?: string,
+  ): Promise<{ notified: boolean; reason?: string }> {
+    const { data: session } = await supabase.auth.getSession();
+    const token = session.session?.access_token;
+    if (!token) return { notified: false, reason: "no_session" };
+
+    const res = await fetch("/api/affiliate/notify-commission", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ order_id: orderId, status, note }),
+    });
+
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      return { notified: false, reason: errBody.error || "request_failed" };
+    }
+
+    return await res.json();
   },
 };

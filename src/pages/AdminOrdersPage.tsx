@@ -100,7 +100,7 @@ export function AdminOrdersPage() {
       note?: string;
     }) => ordersService.updateCommissionStatus(id, status, note),
     onMutate: ({ id }) => setProcessingId(id),
-    onSuccess: (order) => {
+    onSuccess: async (order) => {
       invalidate();
       const msg =
         order.commission_status === "approved"
@@ -109,6 +109,21 @@ export function AdminOrdersPage() {
             ? "Đã đánh dấu đã thanh toán"
             : "Đã huỷ hoa hồng";
       toast.success(msg);
+
+      // Wait for the fire-and-forget notification to complete and show
+      // a secondary toast so the admin knows whether email was sent.
+      // The service already fired the request; we just surface the result.
+      const result = await ordersService.notifyCommission(
+        order.id,
+        order.commission_status as "approved" | "cancelled" | "paid",
+      );
+      if (result.notified) {
+        toast.success("Đã gửi email thông báo cho CTV");
+      } else if (result.reason === "email_not_configured") {
+        // Silent — admin hasn't set up Resend yet
+      } else if (result.reason === "no_email") {
+        toast.info("CTV chưa có email đăng ký, bỏ qua thông báo");
+      }
     },
     onError: (e: Error) => toast.error("Không cập nhật được đơn hàng", { description: e.message }),
     onSettled: () => setProcessingId(null),
