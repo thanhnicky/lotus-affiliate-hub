@@ -40,6 +40,20 @@ export const ordersService = {
     return (data ?? []).map(mapOrder);
   },
 
+  /** Orders for a specific affiliate (the CTV's own orders), newest first. */
+  async listMyOrders(affiliateId: string): Promise<Order[]> {
+    const { data, error } = await supabase
+      .from("orders")
+      .select("*")
+      .eq("affiliate_id", affiliateId)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      throw new ServiceError(error.message || "Không thể tải đơn hàng của bạn.");
+    }
+    return (data ?? []).map(mapOrder);
+  },
+
   /** Admin-only: creates an order and applies the commission bookkeeping atomically. */
   async createOrder(input: CreateOrderInput): Promise<Order> {
     if (!input.affiliate_code?.trim()) {

@@ -6,10 +6,42 @@ import type { ReactNode } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CopyButton } from "@/components/CopyButton";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { CardsSkeleton, EmptyState, ErrorState } from "@/components/states";
 import { useAuth } from "@/hooks/useAuth";
-import { CHANNEL_LABEL, linksService } from "@/services";
+import { CHANNEL_LABEL, COMMISSION_STATUS_LABEL, linksService, ordersService } from "@/services";
 import { formatDate, formatNumber, formatVnd } from "@/lib/format";
+import type { CommissionStatus, Order } from "@/types";
+
+const STATUS_BADGE: Record<CommissionStatus, string> = {
+  pending: "bg-warning/15 text-warning-foreground",
+  approved: "bg-success/15 text-success-foreground",
+  paid: "bg-success/15 text-success-foreground",
+  cancelled: "bg-destructive/10 text-destructive",
+  fraud: "bg-destructive/10 text-destructive",
+};
+
+/** Mask all but the last 3 digits of a phone number: 0912345678 -> *******678 */
+function maskPhone(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length <= 3) return "***";
+  return "*".repeat(digits.length - 3) + digits.slice(-3);
+}
+
+/** Extract just the province/city name from a full address.
+ *  Vietnamese addresses typically end with the province/city, often after a
+ *  comma. If no comma, return the whole string (assume it's already just the
+ *  province as the OrderForm captures). */
+function maskAddress(address: string): string {
+  if (!address) return "";
+  const parts = address.split(",").map((p) => p.trim());
+  // Return the last non-empty segment (the province/city).
+  for (let i = parts.length - 1; i >= 0; i--) {
+    const part = parts[i];
+    if (part) return part;
+  }
+  return "";
+}
 
 export function DashboardPage() {
   const { affiliate } = useAuth();
@@ -27,8 +59,15 @@ export function DashboardPage() {
     enabled: Boolean(affiliateId),
   });
 
+  const ordersQuery = useQuery({
+    queryKey: ["my-orders", affiliateId],
+    queryFn: () => ordersService.listMyOrders(affiliateId!),
+    enabled: Boolean(affiliateId),
+  });
+
   const stats = statsQuery.data;
   const recent = (linksQuery.data ?? []).slice(0, 5);
+  const myOrders = (ordersQuery.data ?? []).slice(0, 10);
 
   return (
     <AppLayout
@@ -128,6 +167,58 @@ export function DashboardPage() {
                 </li>
               );
             })}
+          </ul>
+        )}
+      </section>
+
+      <section className="mt-8">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="font-display text-lg font-semibold">Đơn hàng của bạn</h2>
+        </div>
+
+        {ordersQuery.isError ? (
+          <ErrorState onRetry={() => void ordersQuery.refetch()} />
+        ) : ordersQuery.isLoading ? (
+          <CardsSkeleton />
+        ) : myOrders.length === 0 ? (
+          <EmptyState
+            icon={<ShoppingBag className="h-5 w-5" />}
+            title="Chưa có đơn hàng nào"
+            description="Khi khách đặt hàng qua link của bạn, đơn sẽ xuất hiện ở đây."
+          />
+        ) : (
+          <ul className="grid gap-3">
+            {myOrders.map((order) => (
+              <li
+                key={order.id}
+                className="rounded-2xl border border-border/70 bg-card p-4 shadow-card"
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-display text-base font-semibold">
+                    {formatVnd(order.final_amount)}
+                  </span>
+                  {order.commission_status ? (
+                    <Badge className={STATUS_BADGE[order.commission_status]}>
+                      {COMMISSION_STATUS_LABEL[order.commission_status]}
+                    </Badge>
+                  ) : null}
+                  <span className="ml-auto text-xs text-muted-foreground">
+                    {formatDate(order.created_at)}
+                  </span>
+                </div>
+                <div className="mt-2 grid gap-1 text-sm text-muted-foreground sm:grid-cols-2">
+                  <span>
+                    Khách: {order.customer_name} · {maskPhone(order.customer_phone)}
+                  </span>
+                  <span>Khu vực: {maskAddress(order.shipping_address ?? "") || "—"}</span>
+                  <span>
+                    Hoa hồng: {formatVnd(order.commission_amount ?? 0)}
+                    {order.commission_rate !== null ? ` (${order.commission_rate}%)` : ""}
+                  </span>
+                  <span>Mã đơn: {order.order_code}</span>
+                </div>
+              </li>
+            ))}
           </ul>
         )}
       </section>
