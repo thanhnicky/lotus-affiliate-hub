@@ -8,4 +8,5 @@ export { profileService } from "./profile.service";
 export { linksService } from "./links.service";
 export { withdrawalsService } from "./withdrawals.service";
 export { ordersService } from "./orders.service";
+export { adminService } from "./admin.service";
 export * from "./constants";

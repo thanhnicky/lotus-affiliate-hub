@@ -24,6 +24,14 @@ export interface Affiliate {
   updated_at?: string;
 }
 
+/** Admin view of an affiliate, enriched with order stats. */
+export interface AdminAffiliate extends Affiliate {
+  order_count: number;
+  approved_order_count: number;
+  paid_commission: number;
+  last_order_at?: string | null;
+}
+
 export interface LandingPage {
   id: string;
   name: string;

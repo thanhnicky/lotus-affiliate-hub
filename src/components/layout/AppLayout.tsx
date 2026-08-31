@@ -7,6 +7,7 @@ import {
   LogOut,
   Wallet,
   ShoppingBag,
+  Users,
   Phone,
   Mail,
   MapPin,
@@ -31,7 +32,10 @@ const NAV: NavItem[] = [
   { to: "/profile", label: "Hồ sơ", icon: User },
 ];
 
-const ADMIN_NAV: NavItem = { to: "/admin-orders", label: "Quản lý đơn hàng", icon: ShoppingBag };
+const ADMIN_NAV: NavItem[] = [
+  { to: "/admin-orders", label: "Quản lý đơn hàng", icon: ShoppingBag },
+  { to: "/admin-affiliates", label: "Quản lý CTV", icon: Users },
+];
 
 export function AppLayout({
   title,
@@ -60,7 +64,7 @@ export function AppLayout({
         </Link>
 
         <nav className="mt-8 grid gap-1">
-          {(affiliate?.role === "admin" ? [...NAV, ADMIN_NAV] : NAV).map((item) => (
+          {(affiliate?.role === "admin" ? [...NAV, ...ADMIN_NAV] : NAV).map((item) => (
             <Link
               key={item.to}
               to={item.to}
