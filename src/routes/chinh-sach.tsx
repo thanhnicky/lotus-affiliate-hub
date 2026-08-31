@@ -66,21 +66,46 @@ function PolicyPage() {
               </li>
               <li>
                 Đơn hàng bị huỷ, hoàn trả hoặc giao không thành công sẽ không được tính hoa hồng. Lý
-                do huỷ được ghi rõ trong hệ thống.
+                do huỷ được ghi rõ trong hệ thống để bạn nắm rõ nguyên nhân.
               </li>
               <li>Lotus kiểm duyệt và duyệt hoa hồng trước khi thanh toán.</li>
             </ul>
           </Section>
 
-          <Section title="3. Thanh toán">
+          <Section title="3. Thời gian ghi nhận (cookie)">
+            <ul className="list-disc space-y-1 pl-5">
+              <li>
+                Khi khách click vào link của bạn, hệ thống ghi nhận mã CTV trên trình duyệt của
+                khách trong <strong>60 ngày</strong>.
+              </li>
+              <li>
+                Nếu khách đặt hàng bất cứ lúc nào trong 60 ngày đó (kể cả khi khách rời trang rồi
+                quay lại sau), đơn hàng vẫn được gắn với mã CTV của bạn.
+              </li>
+              <li>
+                Sau 60 ngày hoặc khi khách xoá dữ liệu trình duyệt, attribution sẽ mất và đơn hàng
+                không còn gắn với CTV.
+              </li>
+              <li>
+                Trong 30 phút sau lần click đầu tiên, các lần click lại cùng link không tính thêm
+                lượt (tránh spam).
+              </li>
+            </ul>
+          </Section>
+
+          <Section title="4. Thanh toán">
             <ul className="list-disc space-y-1 pl-5">
               <li>Công ty thanh toán tiền hoa hồng từ ngày 1 đến ngày 5 hàng tháng.</li>
               <li>Số dư có thể rút được hiển thị tại mục "Hoa hồng & Thanh toán".</li>
               <li>Lịch sử các khoản công ty đã chuyển hiển thị minh bạch trong cùng mục.</li>
+              <li>
+                Mỗi đơn hàng đều có trạng thái rõ ràng:{" "}
+                <em>Chờ duyệt → Đã duyệt → Đã thanh toán</em> hoặc <em>Đã huỷ</em> (kèm lý do).
+              </li>
             </ul>
           </Section>
 
-          <Section title="4. Quyền và nghĩa vụ của CTV">
+          <Section title="5. Quyền và nghĩa vụ của CTV">
             <ul className="list-disc space-y-1 pl-5">
               <li>Được tạo link tiếp thị cho 4 dòng sản phẩm sơn Lotus.</li>
               <li>Được theo dõi lượt click, đơn hàng và hoa hồng theo thời gian thực.</li>
@@ -93,7 +118,7 @@ function PolicyPage() {
             </ul>
           </Section>
 
-          <Section title="5. Bảo mật dữ liệu">
+          <Section title="6. Bảo mật dữ liệu">
             <ul className="list-disc space-y-1 pl-5">
               <li>CTV chỉ xem được dữ liệu của chính mình (đơn hàng, hoa hồng, link).</li>
               <li>Thông tin khách hàng được ẩn bớt (SĐT, địa chỉ) để bảo vệ quyền riêng tư.</li>
@@ -101,7 +126,7 @@ function PolicyPage() {
             </ul>
           </Section>
 
-          <Section title="6. Tạm ngưng và chấm dứt">
+          <Section title="7. Tạm ngưng và chấm dứt">
             <ul className="list-disc space-y-1 pl-5">
               <li>
                 Lotus có quyền tạm khoá hoặc chấm dứt tài khoản CTV nếu phát hiện vi phạm chính
@@ -113,7 +138,7 @@ function PolicyPage() {
             </ul>
           </Section>
 
-          <Section title="7. Liên hệ">
+          <Section title="8. Liên hệ">
             <p>CTV có thắc mắc về hoa hồng, đơn hàng hoặc chính sách, vui lòng liên hệ:</p>
             <ul className="mt-2 space-y-1 pl-5">
               <li className="flex items-center gap-2">
