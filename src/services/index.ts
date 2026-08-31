@@ -7,4 +7,5 @@ export { authService } from "./auth.service";
 export { profileService } from "./profile.service";
 export { linksService } from "./links.service";
 export { withdrawalsService } from "./withdrawals.service";
+export { ordersService } from "./orders.service";
 export * from "./constants";

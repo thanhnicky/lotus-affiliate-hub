@@ -6,6 +6,7 @@ import {
   User,
   LogOut,
   Wallet,
+  ShoppingBag,
   type LucideIcon,
 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -26,6 +27,8 @@ const NAV: NavItem[] = [
   { to: "/withdrawals", label: "Rút tiền", icon: Wallet },
   { to: "/profile", label: "Hồ sơ", icon: User },
 ];
+
+const ADMIN_NAV: NavItem = { to: "/admin-orders", label: "Quản lý đơn hàng", icon: ShoppingBag };
 
 export function AppLayout({
   title,
@@ -54,7 +57,7 @@ export function AppLayout({
         </Link>
 
         <nav className="mt-8 grid gap-1">
-          {NAV.map((item) => (
+          {(affiliate?.role === "admin" ? [...NAV, ADMIN_NAV] : NAV).map((item) => (
             <Link
               key={item.to}
               to={item.to}
@@ -148,4 +151,3 @@ export function AppLayout({
     </div>
   );
 }
-

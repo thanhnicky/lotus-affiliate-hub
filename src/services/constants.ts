@@ -1,4 +1,4 @@
-import type { ShareChannel, WithdrawalStatus, AffiliateStatus } from "@/types";
+import type { ShareChannel, WithdrawalStatus, AffiliateStatus, OrderStatus } from "@/types";
 
 export const SHARE_CHANNELS: { value: ShareChannel; label: string }[] = [
   { value: "zalo_personal", label: "Zalo cá nhân" },
@@ -31,6 +31,12 @@ export const AFFILIATE_STATUS_LABEL: Record<AffiliateStatus, string> = {
   pending: "Chờ duyệt",
   active: "Đang hoạt động",
   suspended: "Tạm khoá",
+};
+
+export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
+  pending: "Chờ duyệt",
+  approved: "Đã duyệt",
+  rejected: "Từ chối",
 };
 
 export const SUPPORT_ZALO = "0901234567";

@@ -87,11 +87,42 @@ export interface WithdrawalInput {
   note?: string | null | undefined;
 }
 
-
 export interface DashboardStats {
   clicks: number;
   leads: number;
   orders: number;
   pending_commission: number;
   available_commission: number;
+}
+
+export type OrderStatus = "pending" | "approved" | "rejected";
+
+export interface Order {
+  id: string;
+  external_reference: string;
+  affiliate_id: string | null;
+  affiliate_link_id: string | null;
+  affiliate_code: string | null;
+  order_value: number;
+  commission_rate: number | null;
+  commission_amount: number;
+  customer_name: string | null;
+  customer_phone: string | null;
+  status: OrderStatus;
+  source: string;
+  note: string | null;
+  created_by: string | null;
+  approved_by: string | null;
+  approved_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateOrderInput {
+  external_reference: string;
+  affiliate_code: string;
+  order_value: number;
+  customer_name?: string | null | undefined;
+  customer_phone?: string | null | undefined;
+  campaign_slug?: string | null | undefined;
 }
