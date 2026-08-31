@@ -1,12 +1,20 @@
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { LinkIcon, MousePointerClick, PlusCircle, ShoppingBag, Wallet, Clock } from "lucide-react";
+import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
 import { AppLayout } from "@/components/layout/AppLayout";
 import { CopyButton } from "@/components/CopyButton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { CardsSkeleton, EmptyState, ErrorState } from "@/components/states";
 import { useAuth } from "@/hooks/useAuth";
 import { CHANNEL_LABEL, COMMISSION_STATUS_LABEL, linksService, ordersService } from "@/services";
@@ -67,7 +75,46 @@ export function DashboardPage() {
 
   const stats = statsQuery.data;
   const recent = (linksQuery.data ?? []).slice(0, 5);
-  const myOrders = (ordersQuery.data ?? []).slice(0, 10);
+  const allOrders = ordersQuery.data ?? [];
+
+  // Build month options from the orders' created_at (yyyy-mm).
+  const monthOptions = useMemo(() => {
+    const set = new Set<string>();
+    allOrders.forEach((o) => {
+      const d = new Date(o.created_at);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      set.add(key);
+    });
+    return Array.from(set).sort().reverse();
+  }, [allOrders]);
+
+  // Build landing page options from the orders' landing_page_name.
+  const landingPageOptions = useMemo(() => {
+    const set = new Set<string>();
+    allOrders.forEach((o) => {
+      if (o.landing_page_name) set.add(o.landing_page_name);
+    });
+    return Array.from(set).sort();
+  }, [allOrders]);
+
+  const [monthFilter, setMonthFilter] = useState<string>("all");
+  const [landingPageFilter, setLandingPageFilter] = useState<string>("all");
+
+  const filteredOrders = useMemo(() => {
+    return allOrders.filter((o) => {
+      if (monthFilter !== "all") {
+        const d = new Date(o.created_at);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        if (key !== monthFilter) return false;
+      }
+      if (landingPageFilter !== "all") {
+        if ((o.landing_page_name ?? "") !== landingPageFilter) return false;
+      }
+      return true;
+    });
+  }, [allOrders, monthFilter, landingPageFilter]);
+
+  const myOrders = filteredOrders.slice(0, 50);
 
   return (
     <AppLayout
@@ -172,19 +219,72 @@ export function DashboardPage() {
       </section>
 
       <section className="mt-8">
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-display text-lg font-semibold">Đơn hàng của bạn</h2>
+          {allOrders.length > 0 ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <Select value={monthFilter} onValueChange={setMonthFilter}>
+                <SelectTrigger className="h-9 w-[140px]">
+                  <SelectValue placeholder="Tháng" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả tháng</SelectItem>
+                  {monthOptions.map((m) => {
+                    const [y, mo] = m.split("-");
+                    const label = `Tháng ${Number(mo)}/${y}`;
+                    return (
+                      <SelectItem key={m} value={m}>
+                        {label}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+              <Select value={landingPageFilter} onValueChange={setLandingPageFilter}>
+                <SelectTrigger className="h-9 w-[200px]">
+                  <SelectValue placeholder="Landing page" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả landing page</SelectItem>
+                  {landingPageOptions.map((lp) => (
+                    <SelectItem key={lp} value={lp}>
+                      {lp}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {(monthFilter !== "all" || landingPageFilter !== "all") && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-9"
+                  onClick={() => {
+                    setMonthFilter("all");
+                    setLandingPageFilter("all");
+                  }}
+                >
+                  Xóa lọc
+                </Button>
+              )}
+            </div>
+          ) : null}
         </div>
 
         {ordersQuery.isError ? (
           <ErrorState onRetry={() => void ordersQuery.refetch()} />
         ) : ordersQuery.isLoading ? (
           <CardsSkeleton />
-        ) : myOrders.length === 0 ? (
+        ) : allOrders.length === 0 ? (
           <EmptyState
             icon={<ShoppingBag className="h-5 w-5" />}
             title="Chưa có đơn hàng nào"
             description="Khi khách đặt hàng qua link của bạn, đơn sẽ xuất hiện ở đây."
+          />
+        ) : filteredOrders.length === 0 ? (
+          <EmptyState
+            icon={<ShoppingBag className="h-5 w-5" />}
+            title="Không có đơn hàng phù hợp"
+            description="Thử thay đổi bộ lọc tháng hoặc landing page."
           />
         ) : (
           <ul className="grid gap-3">
