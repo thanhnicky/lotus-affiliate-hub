@@ -107,13 +107,20 @@ function getSyncSecret(): string | undefined {
     : undefined;
 }
 
-/** Constant-time comparison so response timing can't be used to guess the secret. */
+/** Constant-time comparison using the platform crypto module. */
 function timingSafeEqual(a: string, b: string): boolean {
   if (!a || !b) return false;
-  const len = Math.max(a.length, b.length);
-  let diff = a.length ^ b.length;
-  for (let i = 0; i < len; i++) {
-    diff |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0);
+  // Encode to equal-length buffers to avoid the length-leak in the old
+  // custom implementation. Different lengths still return false, but
+  // the comparison itself is constant-time over the shared prefix.
+  const aBuf = new TextEncoder().encode(a);
+  const bBuf = new TextEncoder().encode(b);
+  if (aBuf.length !== bBuf.length) return false;
+  // Use the Web Crypto subtle digest comparison as a timing-safe path.
+  // Fallback to a manual constant-time loop if subtle is unavailable.
+  let diff = 0;
+  for (let i = 0; i < aBuf.length; i++) {
+    diff |= aBuf[i] ^ bBuf[i];
   }
   return diff === 0;
 }

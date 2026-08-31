@@ -25,12 +25,7 @@ function sanitizeOptionalString(val: unknown, maxLen = 100): string | null {
   return trimmed.slice(0, maxLen);
 }
 
-export const LEAD_TYPES = [
-  "form_submit",
-  "zalo_click",
-  "phone_click",
-  "email_click",
-] as const;
+export const LEAD_TYPES = ["form_submit", "zalo_click", "phone_click", "email_click"] as const;
 export type LeadType = (typeof LEAD_TYPES)[number];
 
 /** Customer or Lotus contact details attached to a lead. */
@@ -175,11 +170,7 @@ export function validateAndCanonicalizeTrackClick(body: unknown): ValidationResu
     return { valid: false, error: "Dữ liệu yêu cầu không hợp lệ." };
   }
   const affiliateCode = raw["affiliate_code"].trim().toUpperCase();
-  if (
-    !affiliateCode ||
-    affiliateCode.length > 64 ||
-    !AFFILIATE_CODE_REGEX.test(affiliateCode)
-  ) {
+  if (!affiliateCode || affiliateCode.length > 64 || !AFFILIATE_CODE_REGEX.test(affiliateCode)) {
     return { valid: false, error: "Dữ liệu yêu cầu không hợp lệ." };
   }
 
@@ -209,13 +200,13 @@ export function validateAndCanonicalizeTrackClick(body: unknown): ValidationResu
   const utmMedium = sanitizeOptionalString(raw["utm_medium"]);
   const utmCampaign = sanitizeOptionalString(raw["utm_campaign"]);
 
-  // 4. Validate or generate visitor_id
-  let visitorId: string;
-  if (typeof raw["visitor_id"] === "string" && UUID_REGEX.test(raw["visitor_id"].trim())) {
-    visitorId = raw["visitor_id"].trim().toLowerCase();
-  } else {
-    visitorId = crypto.randomUUID();
+  // 4. visitor_id is REQUIRED. Previously a missing/invalid visitor_id was
+  // replaced with a fresh random UUID, which let an attacker flood clicks
+  // with no dedupe by simply omitting visitor_id. Now we reject instead.
+  if (typeof raw["visitor_id"] !== "string" || !UUID_REGEX.test(raw["visitor_id"].trim())) {
+    return { valid: false, error: "Dữ liệu yêu cầu không hợp lệ." };
   }
+  const visitorId = raw["visitor_id"].trim().toLowerCase();
 
   return {
     valid: true,
