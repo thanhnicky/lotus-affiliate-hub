@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { CheckCircle2, Loader2, ShoppingBag, XCircle } from "lucide-react";
+import { CheckCircle2, Download, Loader2, ShoppingBag, XCircle } from "lucide-react";
+import * as XLSX from "xlsx";
 
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,12 @@ export function AdminOrdersPage() {
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [campaignSlug, setCampaignSlug] = useState("");
+
+  // Export date range — defaults to empty (export all). Stored as yyyy-mm-dd
+  // strings for native <input type="date"> control.
+  const [exportFrom, setExportFrom] = useState("");
+  const [exportTo, setExportTo] = useState("");
+  const [isExporting, setIsExporting] = useState(false);
 
   const ordersQuery = useQuery({
     queryKey: ["admin-orders"],
@@ -96,6 +103,78 @@ export function AdminOrdersPage() {
     !createOrder.isPending;
 
   const orders: Order[] = ordersQuery.data ?? [];
+
+  // Orders filtered by the export date range (based on created_at). Empty
+  // range = all orders. Used both for the export and to show the count.
+  const exportFilteredOrders = useMemo(() => {
+    if (!exportFrom && !exportTo) return orders;
+    const fromTs = exportFrom ? new Date(exportFrom + "T00:00:00").getTime() : -Infinity;
+    // Inclusive of the end day: add 24h - 1ms.
+    const toTs = exportTo ? new Date(exportTo + "T23:59:59.999").getTime() : Infinity;
+    return orders.filter((o) => {
+      const ts = new Date(o.created_at).getTime();
+      return ts >= fromTs && ts <= toTs;
+    });
+  }, [orders, exportFrom, exportTo]);
+
+  const handleExportExcel = () => {
+    if (exportFilteredOrders.length === 0) {
+      toast.error("Không có đơn hàng nào trong khoảng thời gian đã chọn.");
+      return;
+    }
+    setIsExporting(true);
+    try {
+      const rows = exportFilteredOrders.map((o) => ({
+        "Mã đơn": o.order_code,
+        "Ngày tạo": formatDate(o.created_at),
+        "Tên khách": o.customer_name,
+        SĐT: o.customer_phone,
+        Email: o.customer_email ?? "",
+        "Tổng tiền (đ)": o.total_amount,
+        "Giảm giá (đ)": o.discount_amount,
+        "Thực thu (đ)": o.final_amount,
+        "Mã CTV (UUID)": o.affiliate_id ?? "",
+        "Mã link (UUID)": o.affiliate_link_id ?? "",
+        "Hoa hồng (đ)": o.commission_amount ?? 0,
+        "Tỷ lệ hoa hồng": o.commission_rate ?? "",
+        "Trạng thái hoa hồng": o.commission_status
+          ? COMMISSION_STATUS_LABEL[o.commission_status]
+          : "",
+        "Trạng thái đơn": o.order_status,
+        "Trạng thái thanh toán": o.payment_status,
+        "Phương thức TT": o.payment_method ?? "",
+        "Địa chỉ giao": o.shipping_address ?? "",
+        "Ghi chú": o.notes ?? "",
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(rows);
+      // Auto-size columns based on header + content length.
+      const colWidths = Object.keys(rows[0] ?? {}).map((key) => {
+        const maxLen = Math.max(
+          key.length,
+          ...rows.map((r) => String((r as Record<string, unknown>)[key] ?? "").length),
+        );
+        return { wch: Math.min(maxLen + 2, 40) };
+      });
+      ws["!cols"] = colWidths;
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Đơn hàng");
+
+      const rangeLabel =
+        exportFrom || exportTo ? `_${exportFrom || "dau"}_${exportTo || "nay"}` : "_toan_bo";
+      const fileName = `don_hang${rangeLabel}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      XLSX.writeFile(wb, fileName);
+
+      toast.success(`Đã xuất ${exportFilteredOrders.length} đơn hàng ra file Excel.`);
+    } catch (err) {
+      toast.error("Không xuất được file Excel.", {
+        description: err instanceof Error ? err.message : undefined,
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
   const pending = orders.filter((o) => o.commission_status === "pending");
   const resolved = orders.filter((o) => o.commission_status !== "pending");
 
@@ -104,6 +183,59 @@ export function AdminOrdersPage() {
       title="Quản lý đơn hàng"
       description="Nhập đơn hàng thủ công và duyệt hoa hồng cho cộng tác viên."
     >
+      {/* Export bar */}
+      <div className="mb-6 flex flex-wrap items-end gap-3 rounded-2xl border border-border/70 bg-card p-4 shadow-card">
+        <div className="space-y-1">
+          <Label htmlFor="export-from" className="text-xs">
+            Từ ngày
+          </Label>
+          <Input
+            id="export-from"
+            type="date"
+            className="h-10 w-[160px]"
+            value={exportFrom}
+            onChange={(e) => setExportFrom(e.target.value)}
+          />
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor="export-to" className="text-xs">
+            Đến ngày
+          </Label>
+          <Input
+            id="export-to"
+            type="date"
+            className="h-10 w-[160px]"
+            value={exportTo}
+            onChange={(e) => setExportTo(e.target.value)}
+          />
+        </div>
+        <Button
+          onClick={handleExportExcel}
+          disabled={isExporting || exportFilteredOrders.length === 0}
+          className="h-10"
+        >
+          {isExporting ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Download className="mr-2 h-4 w-4" />
+          )}
+          Xuất Excel ({exportFilteredOrders.length})
+        </Button>
+        {(exportFrom || exportTo) && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-10"
+            onClick={() => {
+              setExportFrom("");
+              setExportTo("");
+            }}
+          >
+            Xóa lọc
+          </Button>
+        )}
+      </div>
+
       <div className="grid gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
         <form
           className="h-fit space-y-4 rounded-3xl border border-border/70 bg-card p-6 shadow-card"
