@@ -220,6 +220,11 @@ export function DashboardPage() {
                   <span>Landing page: {order.landing_page_name ?? "—"}</span>
                   <span className="truncate">Mã đơn: {order.order_code}</span>
                 </div>
+                {order.commission_status === "cancelled" && order.notes ? (
+                  <div className="mt-2 rounded-lg bg-destructive/5 p-3 text-sm text-destructive">
+                    <span className="font-medium">Lý do huỷ:</span> {order.notes}
+                  </div>
+                ) : null}
               </li>
             ))}
           </ul>

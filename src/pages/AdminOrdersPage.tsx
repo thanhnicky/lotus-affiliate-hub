@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -89,8 +90,15 @@ export function AdminOrdersPage() {
 
   const [processingId, setProcessingId] = useState<string | null>(null);
   const updateStatus = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: "approved" | "cancelled" | "paid" }) =>
-      ordersService.updateCommissionStatus(id, status),
+    mutationFn: ({
+      id,
+      status,
+      note,
+    }: {
+      id: string;
+      status: "approved" | "cancelled" | "paid";
+      note?: string;
+    }) => ordersService.updateCommissionStatus(id, status, note),
     onMutate: ({ id }) => setProcessingId(id),
     onSuccess: (order) => {
       invalidate();
@@ -491,65 +499,144 @@ function OrderActions({
 }: {
   order: Order;
   processingId: string | null;
-  onStatus: (args: { id: string; status: "approved" | "cancelled" | "paid" }) => void;
+  onStatus: (args: {
+    id: string;
+    status: "approved" | "cancelled" | "paid";
+    note?: string;
+  }) => void;
 }) {
+  const [showCancelForm, setShowCancelForm] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+
   // No affiliate -> no commission to act on.
   if (!order.affiliate_id) return null;
 
   const busy = processingId === order.id;
 
+  const handleCancel = () => {
+    if (!cancelReason.trim()) {
+      toast.error("Vui lòng nhập lý do huỷ hoa hồng.");
+      return;
+    }
+    onStatus({ id: order.id, status: "cancelled", note: cancelReason.trim() });
+    setShowCancelForm(false);
+    setCancelReason("");
+  };
+
   if (order.commission_status === "pending") {
     return (
-      <div className="mt-3 flex gap-2">
-        <Button
-          size="sm"
-          disabled={busy}
-          onClick={() => onStatus({ id: order.id, status: "approved" })}
-        >
-          {busy ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <CheckCircle2 className="mr-2 h-4 w-4" />
-          )}
-          Duyệt
-        </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          disabled={busy}
-          onClick={() => onStatus({ id: order.id, status: "cancelled" })}
-        >
-          <XCircle className="mr-2 h-4 w-4" />
-          Huỷ
-        </Button>
+      <div className="mt-3">
+        {!showCancelForm ? (
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              disabled={busy}
+              onClick={() => onStatus({ id: order.id, status: "approved" })}
+            >
+              {busy ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <CheckCircle2 className="mr-2 h-4 w-4" />
+              )}
+              Duyệt
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={busy}
+              onClick={() => setShowCancelForm(true)}
+            >
+              <XCircle className="mr-2 h-4 w-4" />
+              Huỷ
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <Textarea
+              autoFocus
+              rows={2}
+              placeholder="Lý do huỷ (vd: Giao hàng không thành công, khách từ chối nhận...)"
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+            />
+            <div className="flex gap-2">
+              <Button size="sm" disabled={busy} onClick={handleCancel}>
+                {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Xác nhận huỷ
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={busy}
+                onClick={() => {
+                  setShowCancelForm(false);
+                  setCancelReason("");
+                }}
+              >
+                Bỏ qua
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
 
   if (order.commission_status === "approved") {
     return (
-      <div className="mt-3 flex gap-2">
-        <Button
-          size="sm"
-          disabled={busy}
-          onClick={() => onStatus({ id: order.id, status: "paid" })}
-        >
-          {busy ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <CheckCircle2 className="mr-2 h-4 w-4" />
-          )}
-          Đã thanh toán
-        </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          disabled={busy}
-          onClick={() => onStatus({ id: order.id, status: "cancelled" })}
-        >
-          <XCircle className="mr-2 h-4 w-4" />
-          Huỷ
-        </Button>
+      <div className="mt-3">
+        {!showCancelForm ? (
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              disabled={busy}
+              onClick={() => onStatus({ id: order.id, status: "paid" })}
+            >
+              {busy ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <CheckCircle2 className="mr-2 h-4 w-4" />
+              )}
+              Đã thanh toán
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={busy}
+              onClick={() => setShowCancelForm(true)}
+            >
+              <XCircle className="mr-2 h-4 w-4" />
+              Huỷ
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <Textarea
+              autoFocus
+              rows={2}
+              placeholder="Lý do huỷ (vd: Giao hàng không thành công, khách từ chối nhận...)"
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+            />
+            <div className="flex gap-2">
+              <Button size="sm" disabled={busy} onClick={handleCancel}>
+                {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Xác nhận huỷ
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={busy}
+                onClick={() => {
+                  setShowCancelForm(false);
+                  setCancelReason("");
+                }}
+              >
+                Bỏ qua
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -574,6 +661,14 @@ function OrderActions({
     );
   }
 
-  // cancelled / fraud / null: no actions.
+  // cancelled / fraud / null: no actions, but show the cancellation reason if any.
+  if (order.commission_status === "cancelled" && order.notes) {
+    return (
+      <div className="mt-3 rounded-lg bg-destructive/5 p-3 text-sm text-destructive">
+        <span className="font-medium">Lý do huỷ:</span> {order.notes}
+      </div>
+    );
+  }
+
   return null;
 }
