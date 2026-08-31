@@ -7,6 +7,9 @@ import {
   LogOut,
   Wallet,
   ShoppingBag,
+  Phone,
+  Mail,
+  MapPin,
   type LucideIcon,
 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -131,6 +134,41 @@ export function AppLayout({
           </div>
           {children}
         </main>
+
+        <footer className="border-t border-border/70 bg-background/60">
+          <div className="mx-auto w-full max-w-5xl px-4 py-8 text-sm text-muted-foreground">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <div>
+                <p className="font-medium text-foreground">Công ty TNHH SX TM DV Bích Trang</p>
+                <p className="mt-1">Mã số thuế: 0313351528</p>
+              </div>
+              <div>
+                <p className="flex items-start gap-2">
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>99/5 XTT 26-1 Ấp 2, Xã Bà Điểm, TP.HCM</span>
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p className="flex items-center gap-2">
+                  <Phone className="h-4 w-4 shrink-0" />
+                  <a href="tel:0943966662" className="hover:text-foreground">
+                    0943 966 662
+                  </a>
+                </p>
+                <p className="flex items-center gap-2">
+                  <Mail className="h-4 w-4 shrink-0" />
+                  <a href="mailto:sales@sonlotus.vn" className="hover:text-foreground">
+                    sales@sonlotus.vn
+                  </a>
+                </p>
+              </div>
+            </div>
+            <p className="mt-6 border-t border-border/40 pt-4 text-xs">
+              Cộng tác viên có thắc mắc vui lòng liên hệ thông tin trên. ©{" "}
+              {new Date().getFullYear()} Bích Trang — Sơn Lotus.
+            </p>
+          </div>
+        </footer>
       </div>
 
       <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-border bg-background/95 backdrop-blur lg:hidden">
