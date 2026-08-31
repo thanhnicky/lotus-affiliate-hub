@@ -1,14 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import {
-  LinkIcon,
-  MousePointerClick,
-  PlusCircle,
-  ShoppingBag,
-  UserPlus,
-  Wallet,
-  Clock,
-} from "lucide-react";
+import { LinkIcon, MousePointerClick, PlusCircle, ShoppingBag, Wallet, Clock } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -56,16 +48,11 @@ export function DashboardPage() {
       ) : statsQuery.isLoading ? (
         <CardsSkeleton count={2} />
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard
             icon={<MousePointerClick className="h-4 w-4" />}
             label="Lượt click"
             value={formatNumber(stats?.clicks ?? 0)}
-          />
-          <StatCard
-            icon={<UserPlus className="h-4 w-4" />}
-            label="Lead"
-            value={formatNumber(stats?.leads ?? 0)}
           />
           <StatCard
             icon={<ShoppingBag className="h-4 w-4" />}
@@ -114,7 +101,10 @@ export function DashboardPage() {
             {recent.map((link) => {
               const url = link.affiliate_url || "";
               return (
-                <li key={link.id} className="rounded-2xl border border-border/70 bg-card p-4 shadow-card">
+                <li
+                  key={link.id}
+                  className="rounded-2xl border border-border/70 bg-card p-4 shadow-card"
+                >
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-medium">{link.landing_page_name || "Sơn Lotus"}</span>
                     <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs text-secondary-foreground">
@@ -164,7 +154,13 @@ function StatCard({
           : "rounded-2xl border border-border/70 bg-card p-5 shadow-card"
       }
     >
-      <div className={highlight ? "flex items-center gap-2 opacity-90" : "flex items-center gap-2 text-muted-foreground"}>
+      <div
+        className={
+          highlight
+            ? "flex items-center gap-2 opacity-90"
+            : "flex items-center gap-2 text-muted-foreground"
+        }
+      >
         {icon}
         <span className="text-xs">{label}</span>
       </div>
@@ -172,4 +168,3 @@ function StatCard({
     </div>
   );
 }
-
