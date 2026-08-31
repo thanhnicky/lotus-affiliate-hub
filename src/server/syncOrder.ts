@@ -82,6 +82,7 @@ export async function handleSyncOrder(request: Request): Promise<Response> {
       p_payment_method: str(raw["payment_method"] ?? raw["paymentMethod"]) || null,
       p_shipping_address: str(raw["shipping_address"] ?? raw["province"]) || null,
       p_notes: str(raw["notes"] ?? raw["note"]) || null,
+      p_affiliate_link_id: str(raw["affiliate_link_id"]) || null,
     });
 
     if (error) {
