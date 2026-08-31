@@ -97,7 +97,7 @@ export function MarketingMaterialsPage() {
               "Viết hook: câu hỏi trúng nỗi đau khách",
               "Giới thiệu sản phẩm + 2 tính năng chính",
               "Gắn link affiliate của bạn ở cuối bài",
-              "Hashtag: #sonlotus #sonnoithat #thietkenha",
+              "Hashtag: #sonlotus #songo #songiago #sonsatkhongmui #chongtham",
             ]}
           />
         </div>
