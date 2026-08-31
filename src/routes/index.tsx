@@ -175,7 +175,7 @@ function Home() {
           <p className="mt-2 text-sm text-muted-foreground">
             4 dòng sơn Lotus — mỗi dòng phục vụ một nhu cầu cụ thể.
           </p>
-          <div className="mt-8 grid gap-5 sm:grid-cols-2">
+          <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-5">
             {landingPages.length > 0
               ? landingPages.map((p) => {
                   const thumbnail = p.thumbnail_url;
@@ -195,18 +195,18 @@ function Home() {
                           />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/8 to-primary/3">
-                            <span className="text-3xl font-display font-bold text-primary/20">
+                            <span className="text-2xl font-display font-bold text-primary/20 sm:text-3xl">
                               {p.name.charAt(0)}
                             </span>
                           </div>
                         )}
                       </div>
-                      <div className="p-5">
-                        <h3 className="font-display text-base font-semibold leading-snug">
+                      <div className="p-3 sm:p-5">
+                        <h3 className="font-display text-xs font-semibold leading-snug sm:text-base">
                           {p.name}
                         </h3>
                         {p.description ? (
-                          <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                          <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground sm:text-sm">
                             {p.description}
                           </p>
                         ) : null}
@@ -215,10 +215,10 @@ function Home() {
                             href={previewUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+                            className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline sm:mt-3 sm:text-sm"
                           >
                             Xem trang sản phẩm
-                            <ExternalLink className="h-3.5 w-3.5" />
+                            <ExternalLink className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                           </a>
                         ) : null}
                       </div>
@@ -226,9 +226,16 @@ function Home() {
                   );
                 })
               : PRODUCTS_FALLBACK.map((p) => (
-                  <div key={p.name} className="rounded-xl border border-border/50 bg-card p-5">
-                    <h3 className="font-display text-base font-semibold leading-snug">{p.name}</h3>
-                    <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{p.desc}</p>
+                  <div
+                    key={p.name}
+                    className="rounded-xl border border-border/50 bg-card p-3 sm:p-5"
+                  >
+                    <h3 className="font-display text-xs font-semibold leading-snug sm:text-base">
+                      {p.name}
+                    </h3>
+                    <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground sm:text-sm">
+                      {p.desc}
+                    </p>
                   </div>
                 ))}
           </div>
