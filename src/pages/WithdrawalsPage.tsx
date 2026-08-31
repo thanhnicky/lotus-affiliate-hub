@@ -1,43 +1,15 @@
-import { useEffect, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { Loader2, Wallet } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Wallet } from "lucide-react";
 
 import { AppLayout } from "@/components/layout/AppLayout";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { CardsSkeleton, EmptyState, ErrorState } from "@/components/states";
 import { useAuth } from "@/hooks/useAuth";
-import { WITHDRAWAL_STATUS_LABEL, linksService, withdrawalsService } from "@/services";
+import { linksService, withdrawalsService } from "@/services";
 import { formatDate, formatVnd } from "@/lib/format";
-import type { WithdrawalStatus } from "@/types";
-
-const STATUS_CLASS: Record<WithdrawalStatus, string> = {
-  requested: "bg-warning/15 text-warning-foreground",
-  approved: "bg-primary/10 text-primary",
-  paid: "bg-success/15 text-success-foreground",
-  rejected: "bg-destructive/10 text-destructive",
-};
 
 export function WithdrawalsPage() {
   const { affiliate } = useAuth();
   const affiliateId = affiliate?.id;
-  const queryClient = useQueryClient();
-
-  const [amount, setAmount] = useState("");
-  const [bankName, setBankName] = useState("");
-  const [accountNumber, setAccountNumber] = useState("");
-  const [accountName, setAccountName] = useState("");
-  const [note, setNote] = useState("");
-
-  useEffect(() => {
-    if (!affiliate) return;
-    setBankName((v) => v || affiliate.bank_name || "");
-    setAccountNumber((v) => v || affiliate.bank_account || "");
-    setAccountName((v) => v || affiliate.bank_holder || "");
-  }, [affiliate]);
 
   const statsQuery = useQuery({
     queryKey: ["stats", affiliateId],
@@ -51,138 +23,76 @@ export function WithdrawalsPage() {
     enabled: Boolean(affiliateId),
   });
 
-  const request = useMutation({
-    mutationFn: () =>
-      withdrawalsService.requestWithdrawal(affiliateId!, {
-        amount: Number(amount.replace(/\D/g, "")),
-        bank_name: bankName,
-        bank_account: accountNumber,
-        bank_holder: accountName,
-        note: note.trim() || undefined,
-      }),
-    onSuccess: () => {
-      setAmount("");
-      setNote("");
-      void queryClient.invalidateQueries({ queryKey: ["withdrawals"] });
-      void queryClient.invalidateQueries({ queryKey: ["stats"] });
-      toast.success("Đã gửi yêu cầu rút tiền", {
-        description: "Lotus sẽ xử lý trong 1-3 ngày làm việc.",
-      });
-    },
-    onError: (e: Error) => toast.error("Không gửi được yêu cầu", { description: e.message }),
-  });
+  // Only show payouts the company has actually transferred (status = paid).
+  // Pending/rejected requests are an internal workflow, not something the CTV
+  // needs to see in this simplified view.
+  const payouts = (listQuery.data ?? []).filter((w) => w.status === "paid");
 
   return (
-    <AppLayout title="Rút tiền" description="Yêu cầu tất toán hoa hồng và theo dõi lịch sử rút tiền.">
-      <div className="grid gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
-        <div className="space-y-4">
-          <div className="rounded-3xl bg-brand p-6 text-primary-foreground shadow-lift">
-            <div className="flex items-center gap-2 opacity-90">
-              <Wallet className="h-4 w-4" />
-              <span className="text-xs">Số dư có thể rút</span>
-            </div>
-            <p className="mt-3 font-display text-3xl font-semibold tracking-tight">
-              {statsQuery.isLoading ? "…" : formatVnd(statsQuery.data?.available_commission ?? 0)}
-            </p>
-            <p className="mt-2 text-xs opacity-80">
-              Hoa hồng chờ đối soát: {formatVnd(statsQuery.data?.pending_commission ?? 0)}
-            </p>
+    <AppLayout
+      title="Hoa hồng & Thanh toán"
+      description="Theo dõi số dư hoa hồng và lịch sử công ty đã thanh toán."
+    >
+      <div className="space-y-6">
+        {/* Balance card */}
+        <div className="rounded-3xl bg-brand p-6 text-primary-foreground shadow-lift">
+          <div className="flex items-center gap-2 opacity-90">
+            <Wallet className="h-4 w-4" />
+            <span className="text-xs">Số dư có thể rút</span>
           </div>
-
-          <form
-            className="space-y-4 rounded-3xl border border-border/70 bg-card p-6 shadow-card"
-            onSubmit={(e) => {
-              e.preventDefault();
-              request.mutate();
-            }}
-          >
-            <h2 className="font-display text-lg font-semibold">Yêu cầu rút tiền</h2>
-            <div className="space-y-2">
-              <Label htmlFor="amount">Số tiền muốn rút (VND)</Label>
-              <Input
-                id="amount"
-                inputMode="numeric"
-                className="h-12"
-                placeholder="1.000.000"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="bank">Ngân hàng</Label>
-              <Input
-                id="bank"
-                className="h-12"
-                value={bankName}
-                onChange={(e) => setBankName(e.target.value)}
-                placeholder="vd: Vietcombank"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="account">Số tài khoản</Label>
-              <Input
-                id="account"
-                inputMode="numeric"
-                className="h-12"
-                value={accountNumber}
-                onChange={(e) => setAccountNumber(e.target.value)}
-                placeholder="Số tài khoản ngân hàng"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="account-name">Chủ tài khoản</Label>
-              <Input
-                id="account-name"
-                className="h-12"
-                value={accountName}
-                onChange={(e) => setAccountName(e.target.value)}
-                placeholder="Tên chủ tài khoản (viết hoa)"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="note">Ghi chú (tuỳ chọn)</Label>
-              <Textarea
-                id="note"
-                rows={3}
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="Thông tin thêm (nếu có)"
-              />
-            </div>
-            <Button type="submit" className="h-12 w-full" disabled={request.isPending}>
-              {request.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Gửi yêu cầu
-            </Button>
-          </form>
+          <p className="mt-3 font-display text-3xl font-semibold tracking-tight">
+            {statsQuery.isLoading ? "…" : formatVnd(statsQuery.data?.available_commission ?? 0)}
+          </p>
+          <p className="mt-2 text-xs opacity-80">
+            Hoa hồng chờ đối soát: {formatVnd(statsQuery.data?.pending_commission ?? 0)}
+          </p>
         </div>
 
+        {/* Payment schedule note */}
+        <div className="rounded-2xl border border-border/70 bg-card p-5 shadow-card">
+          <p className="text-sm text-muted-foreground">
+            Cám ơn quý cộng tác viên đã đồng hành cùng sơn Lotus. Công ty thanh toán tiền hoa hồng
+            từ ngày 1 đến ngày 5 hàng tháng.
+          </p>
+        </div>
+
+        {/* Payout history */}
         <section>
-          <h2 className="mb-3 font-display text-lg font-semibold">Lịch sử yêu cầu rút</h2>
+          <h2 className="mb-3 font-display text-lg font-semibold">Lịch sử thanh toán</h2>
           {listQuery.isError ? (
             <ErrorState onRetry={() => void listQuery.refetch()} />
           ) : listQuery.isLoading ? (
             <CardsSkeleton count={3} />
-          ) : (listQuery.data ?? []).length === 0 ? (
+          ) : payouts.length === 0 ? (
             <EmptyState
               icon={<Wallet className="h-5 w-5" />}
-              title="Chưa có yêu cầu rút tiền"
-              description="Khi hoa hồng đã đối soát, bạn có thể gửi yêu cầu rút tại đây."
+              title="Chưa có lịch sử thanh toán"
+              description="Khi công ty chuyển khoản hoa hồng, chi tiết sẽ xuất hiện ở đây."
             />
           ) : (
             <ul className="grid gap-3">
-              {(listQuery.data ?? []).map((w) => (
-                <li key={w.id} className="rounded-2xl border border-border/70 bg-card p-4 shadow-card">
+              {payouts.map((w) => (
+                <li
+                  key={w.id}
+                  className="rounded-2xl border border-border/70 bg-card p-4 shadow-card"
+                >
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-display text-lg font-semibold">{formatVnd(w.amount)}</span>
-                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_CLASS[w.status as keyof typeof STATUS_CLASS] || "bg-secondary text-secondary-foreground"}`}>
-                      {WITHDRAWAL_STATUS_LABEL[w.status] || w.status}
+                    <span className="font-display text-lg font-semibold">
+                      {formatVnd(w.amount)}
                     </span>
-                    <span className="ml-auto text-xs text-muted-foreground">{formatDate(w.created_at)}</span>
+                    <span className="rounded-full bg-success/15 px-2.5 py-0.5 text-xs font-medium text-success-foreground">
+                      Đã thanh toán
+                    </span>
+                    <span className="ml-auto text-xs text-muted-foreground">
+                      {formatDate(w.created_at)}
+                    </span>
                   </div>
                   <p className="mt-2 text-sm text-muted-foreground">
                     {w.bank_name} · {w.bank_account} · {w.bank_holder}
                   </p>
-                  {w.note ? <p className="mt-1 text-sm text-muted-foreground">Ghi chú: {w.note}</p> : null}
+                  {w.note ? (
+                    <p className="mt-1 text-sm text-muted-foreground">Ghi chú: {w.note}</p>
+                  ) : null}
                 </li>
               ))}
             </ul>
@@ -192,4 +102,3 @@ export function WithdrawalsPage() {
     </AppLayout>
   );
 }
-
