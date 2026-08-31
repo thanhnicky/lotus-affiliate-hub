@@ -19,6 +19,7 @@ import { Route as AuthenticatedAdminOrdersRouteImport } from './routes/_authenti
 import { Route as AuthenticatedCreateLinkRouteImport } from './routes/_authenticated/create-link'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedLinksRouteImport } from './routes/_authenticated/links'
+import { Route as AuthenticatedMarketingRouteImport } from './routes/_authenticated/marketing'
 import { Route as AuthenticatedPendingRouteImport } from './routes/_authenticated/pending'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedSuspendedRouteImport } from './routes/_authenticated/suspended'
@@ -76,6 +77,11 @@ const AuthenticatedLinksRoute = AuthenticatedLinksRouteImport.update({
   path: '/links',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMarketingRoute = AuthenticatedMarketingRouteImport.update({
+  id: '/marketing',
+  path: '/marketing',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedPendingRoute = AuthenticatedPendingRouteImport.update({
   id: '/pending',
   path: '/pending',
@@ -113,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/create-link': typeof AuthenticatedCreateLinkRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/links': typeof AuthenticatedLinksRoute
+  '/marketing': typeof AuthenticatedMarketingRoute
   '/pending': typeof AuthenticatedPendingRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/suspended': typeof AuthenticatedSuspendedRoute
@@ -129,6 +136,7 @@ export interface FileRoutesByTo {
   '/create-link': typeof AuthenticatedCreateLinkRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/links': typeof AuthenticatedLinksRoute
+  '/marketing': typeof AuthenticatedMarketingRoute
   '/pending': typeof AuthenticatedPendingRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/suspended': typeof AuthenticatedSuspendedRoute
@@ -147,6 +155,7 @@ export interface FileRoutesById {
   '/_authenticated/create-link': typeof AuthenticatedCreateLinkRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/links': typeof AuthenticatedLinksRoute
+  '/_authenticated/marketing': typeof AuthenticatedMarketingRoute
   '/_authenticated/pending': typeof AuthenticatedPendingRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/suspended': typeof AuthenticatedSuspendedRoute
@@ -165,6 +174,7 @@ export interface FileRouteTypes {
     | '/create-link'
     | '/dashboard'
     | '/links'
+    | '/marketing'
     | '/pending'
     | '/profile'
     | '/suspended'
@@ -181,6 +191,7 @@ export interface FileRouteTypes {
     | '/create-link'
     | '/dashboard'
     | '/links'
+    | '/marketing'
     | '/pending'
     | '/profile'
     | '/suspended'
@@ -198,6 +209,7 @@ export interface FileRouteTypes {
     | '/_authenticated/create-link'
     | '/_authenticated/dashboard'
     | '/_authenticated/links'
+    | '/_authenticated/marketing'
     | '/_authenticated/pending'
     | '/_authenticated/profile'
     | '/_authenticated/suspended'
@@ -286,6 +298,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLinksRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/marketing': {
+      id: '/_authenticated/marketing'
+      path: '/marketing'
+      fullPath: '/marketing'
+      preLoaderRoute: typeof AuthenticatedMarketingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/pending': {
       id: '/_authenticated/pending'
       path: '/pending'
@@ -330,6 +349,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCreateLinkRoute: typeof AuthenticatedCreateLinkRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedLinksRoute: typeof AuthenticatedLinksRoute
+  AuthenticatedMarketingRoute: typeof AuthenticatedMarketingRoute
   AuthenticatedPendingRoute: typeof AuthenticatedPendingRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedSuspendedRoute: typeof AuthenticatedSuspendedRoute
@@ -342,6 +362,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCreateLinkRoute: AuthenticatedCreateLinkRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedLinksRoute: AuthenticatedLinksRoute,
+  AuthenticatedMarketingRoute: AuthenticatedMarketingRoute,
   AuthenticatedPendingRoute: AuthenticatedPendingRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedSuspendedRoute: AuthenticatedSuspendedRoute,

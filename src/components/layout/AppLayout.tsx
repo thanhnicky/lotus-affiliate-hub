@@ -8,6 +8,7 @@ import {
   Wallet,
   ShoppingBag,
   Users,
+  Sparkles,
   Phone,
   Mail,
   MapPin,
@@ -28,6 +29,7 @@ const NAV: NavItem[] = [
   { to: "/dashboard", label: "Tổng quan", icon: LayoutDashboard },
   { to: "/create-link", label: "Tạo link", icon: PlusCircle },
   { to: "/links", label: "Link của tôi", icon: LinkIcon },
+  { to: "/marketing", label: "Tài liệu marketing", icon: Sparkles },
   { to: "/withdrawals", label: "Rút tiền", icon: Wallet },
   { to: "/profile", label: "Hồ sơ", icon: User },
 ];
