@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { CheckCircle2, Download, Loader2, ShoppingBag, XCircle } from "lucide-react";
+import { CheckCircle2, Download, Loader2, RotateCcw, ShoppingBag, XCircle } from "lucide-react";
 import * as XLSX from "xlsx";
 
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -9,6 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ErrorState, LoadingState, EmptyState } from "@/components/states";
 import { COMMISSION_STATUS_LABEL, ordersService } from "@/services";
 import { formatDate, formatVnd } from "@/lib/format";
@@ -82,14 +89,18 @@ export function AdminOrdersPage() {
 
   const [processingId, setProcessingId] = useState<string | null>(null);
   const updateStatus = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: "approved" | "cancelled" }) =>
+    mutationFn: ({ id, status }: { id: string; status: "approved" | "cancelled" | "paid" }) =>
       ordersService.updateCommissionStatus(id, status),
     onMutate: ({ id }) => setProcessingId(id),
     onSuccess: (order) => {
       invalidate();
-      toast.success(
-        order.commission_status === "approved" ? "Đã duyệt hoa hồng" : "Đã huỷ hoa hồng",
-      );
+      const msg =
+        order.commission_status === "approved"
+          ? "Đã duyệt hoa hồng"
+          : order.commission_status === "paid"
+            ? "Đã đánh dấu đã thanh toán"
+            : "Đã huỷ hoa hồng";
+      toast.success(msg);
     },
     onError: (e: Error) => toast.error("Không cập nhật được đơn hàng", { description: e.message }),
     onSettled: () => setProcessingId(null),
@@ -175,16 +186,51 @@ export function AdminOrdersPage() {
       setIsExporting(false);
     }
   };
+  // Status filter: "all" (default) shows the pending/resolved split view;
+  // any specific status shows a flat list of orders in that status.
+  const [statusFilter, setStatusFilter] = useState<"all" | CommissionStatus | "none">("all");
+
   const pending = orders.filter((o) => o.commission_status === "pending");
   const resolved = orders.filter((o) => o.commission_status !== "pending");
+
+  // When a specific status filter is active, show a flat list instead of the
+  // pending/resolved split. "none" covers orders with no affiliate
+  // (commission_status is NULL).
+  const filteredForDisplay = useMemo(() => {
+    if (statusFilter === "all") return null;
+    if (statusFilter === "none") return orders.filter((o) => !o.commission_status);
+    return orders.filter((o) => o.commission_status === statusFilter);
+  }, [orders, statusFilter]);
 
   return (
     <AppLayout
       title="Quản lý đơn hàng"
       description="Nhập đơn hàng thủ công và duyệt hoa hồng cho cộng tác viên."
     >
-      {/* Export bar */}
+      {/* Export + filter bar */}
       <div className="mb-6 flex flex-wrap items-end gap-3 rounded-2xl border border-border/70 bg-card p-4 shadow-card">
+        <div className="space-y-1">
+          <Label htmlFor="status-filter" className="text-xs">
+            Lọc theo trạng thái
+          </Label>
+          <Select
+            value={statusFilter}
+            onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}
+          >
+            <SelectTrigger id="status-filter" className="h-10 w-[200px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả</SelectItem>
+              <SelectItem value="pending">Chờ duyệt</SelectItem>
+              <SelectItem value="approved">Đã duyệt chưa TT</SelectItem>
+              <SelectItem value="paid">Đã thanh toán</SelectItem>
+              <SelectItem value="cancelled">Đã huỷ</SelectItem>
+              <SelectItem value="none">Không có CTV</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="mx-2 hidden h-10 w-px bg-border/60 sm:block" />
         <div className="space-y-1">
           <Label htmlFor="export-from" className="text-xs">
             Từ ngày
@@ -317,6 +363,37 @@ export function AdminOrdersPage() {
               title="Chưa có đơn hàng nào"
               description="Tạo đơn hàng thủ công ở form bên trái để bắt đầu."
             />
+          ) : filteredForDisplay ? (
+            // Flat list when a specific status filter is active.
+            <section>
+              <h2 className="mb-3 font-display text-lg font-semibold">
+                {statusFilter === "all"
+                  ? ""
+                  : statusFilter === "none"
+                    ? "Không có CTV"
+                    : COMMISSION_STATUS_LABEL[statusFilter as CommissionStatus]}{" "}
+                ({filteredForDisplay.length})
+              </h2>
+              {filteredForDisplay.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Không có đơn hàng nào.</p>
+              ) : (
+                <ul className="grid gap-3">
+                  {filteredForDisplay.map((order) => (
+                    <li
+                      key={order.id}
+                      className="rounded-2xl border border-border/70 bg-card p-4 shadow-card"
+                    >
+                      <OrderSummary order={order} />
+                      <OrderActions
+                        order={order}
+                        processingId={processingId}
+                        onStatus={updateStatus.mutate}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
           ) : (
             <>
               <section>
@@ -333,33 +410,11 @@ export function AdminOrdersPage() {
                         className="rounded-2xl border border-border/70 bg-card p-4 shadow-card"
                       >
                         <OrderSummary order={order} />
-                        <div className="mt-3 flex gap-2">
-                          <Button
-                            size="sm"
-                            disabled={processingId === order.id}
-                            onClick={() =>
-                              updateStatus.mutate({ id: order.id, status: "approved" })
-                            }
-                          >
-                            {processingId === order.id ? (
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                              <CheckCircle2 className="mr-2 h-4 w-4" />
-                            )}
-                            Duyệt
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            disabled={processingId === order.id}
-                            onClick={() =>
-                              updateStatus.mutate({ id: order.id, status: "cancelled" })
-                            }
-                          >
-                            <XCircle className="mr-2 h-4 w-4" />
-                            Huỷ
-                          </Button>
-                        </div>
+                        <OrderActions
+                          order={order}
+                          processingId={processingId}
+                          onStatus={updateStatus.mutate}
+                        />
                       </li>
                     ))}
                   </ul>
@@ -378,6 +433,11 @@ export function AdminOrdersPage() {
                         className="rounded-2xl border border-border/70 bg-card p-4 shadow-card"
                       >
                         <OrderSummary order={order} />
+                        <OrderActions
+                          order={order}
+                          processingId={processingId}
+                          onStatus={updateStatus.mutate}
+                        />
                       </li>
                     ))}
                   </ul>
@@ -421,4 +481,99 @@ function OrderSummary({ order }: { order: Order }) {
       <span className="text-xs text-muted-foreground">{formatDate(order.created_at)}</span>
     </div>
   );
+}
+
+/** Action buttons for an order, depending on its current commission_status. */
+function OrderActions({
+  order,
+  processingId,
+  onStatus,
+}: {
+  order: Order;
+  processingId: string | null;
+  onStatus: (args: { id: string; status: "approved" | "cancelled" | "paid" }) => void;
+}) {
+  // No affiliate -> no commission to act on.
+  if (!order.affiliate_id) return null;
+
+  const busy = processingId === order.id;
+
+  if (order.commission_status === "pending") {
+    return (
+      <div className="mt-3 flex gap-2">
+        <Button
+          size="sm"
+          disabled={busy}
+          onClick={() => onStatus({ id: order.id, status: "approved" })}
+        >
+          {busy ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <CheckCircle2 className="mr-2 h-4 w-4" />
+          )}
+          Duyệt
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={busy}
+          onClick={() => onStatus({ id: order.id, status: "cancelled" })}
+        >
+          <XCircle className="mr-2 h-4 w-4" />
+          Huỷ
+        </Button>
+      </div>
+    );
+  }
+
+  if (order.commission_status === "approved") {
+    return (
+      <div className="mt-3 flex gap-2">
+        <Button
+          size="sm"
+          disabled={busy}
+          onClick={() => onStatus({ id: order.id, status: "paid" })}
+        >
+          {busy ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <CheckCircle2 className="mr-2 h-4 w-4" />
+          )}
+          Đã thanh toán
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={busy}
+          onClick={() => onStatus({ id: order.id, status: "cancelled" })}
+        >
+          <XCircle className="mr-2 h-4 w-4" />
+          Huỷ
+        </Button>
+      </div>
+    );
+  }
+
+  if (order.commission_status === "paid") {
+    return (
+      <div className="mt-3 flex gap-2">
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={busy}
+          onClick={() => onStatus({ id: order.id, status: "approved" })}
+        >
+          {busy ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <RotateCcw className="mr-2 h-4 w-4" />
+          )}
+          Hoàn tác
+        </Button>
+      </div>
+    );
+  }
+
+  // cancelled / fraud / null: no actions.
+  return null;
 }

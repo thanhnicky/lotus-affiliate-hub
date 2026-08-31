@@ -73,10 +73,10 @@ export const ordersService = {
     return mapOrder(data);
   },
 
-  /** Admin-only: approve or cancel the commission on a pending order. */
+  /** Admin-only: approve, cancel, or mark paid the commission on an order. */
   async updateCommissionStatus(
     orderId: string,
-    status: Extract<CommissionStatus, "approved" | "cancelled">,
+    status: Extract<CommissionStatus, "approved" | "cancelled" | "paid">,
     note?: string,
   ): Promise<Order> {
     const { data, error } = await supabase.rpc("admin_update_commission_status", {
