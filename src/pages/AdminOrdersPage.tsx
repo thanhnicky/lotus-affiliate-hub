@@ -9,17 +9,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { ErrorState, LoadingState, EmptyState } from "@/components/states";
-import { ORDER_STATUS_LABEL, ordersService } from "@/services";
+import { COMMISSION_STATUS_LABEL, ordersService } from "@/services";
 import { formatDate, formatVnd } from "@/lib/format";
-import type { Order, OrderStatus } from "@/types";
+import type { CommissionStatus, Order } from "@/types";
 
-const STATUS_BADGE: Record<OrderStatus, string> = {
+const STATUS_BADGE: Record<CommissionStatus, string> = {
   pending: "bg-warning/15 text-warning-foreground",
   approved: "bg-success/15 text-success-foreground",
-  rejected: "bg-destructive/10 text-destructive",
+  paid: "bg-success/15 text-success-foreground",
+  cancelled: "bg-destructive/10 text-destructive",
+  fraud: "bg-destructive/10 text-destructive",
 };
 
-function generateExternalReference() {
+function generateOrderCode() {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
     return crypto.randomUUID();
   }
@@ -30,7 +32,7 @@ export function AdminOrdersPage() {
   const queryClient = useQueryClient();
 
   const [affiliateCode, setAffiliateCode] = useState("");
-  const [orderValue, setOrderValue] = useState("");
+  const [finalAmount, setFinalAmount] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [campaignSlug, setCampaignSlug] = useState("");
@@ -48,23 +50,23 @@ export function AdminOrdersPage() {
   const createOrder = useMutation({
     mutationFn: () =>
       ordersService.createOrder({
-        external_reference: generateExternalReference(),
+        order_code: generateOrderCode(),
         affiliate_code: affiliateCode,
-        order_value: Number(orderValue.replace(/\D/g, "")),
-        customer_name: customerName.trim() || undefined,
-        customer_phone: customerPhone.trim() || undefined,
+        final_amount: Number(finalAmount.replace(/\D/g, "")),
+        customer_name: customerName.trim(),
+        customer_phone: customerPhone.trim(),
         campaign_slug: campaignSlug.trim() || undefined,
       }),
     onSuccess: (order) => {
       setAffiliateCode("");
-      setOrderValue("");
+      setFinalAmount("");
       setCustomerName("");
       setCustomerPhone("");
       setCampaignSlug("");
       invalidate();
       toast.success(
         order.affiliate_id
-          ? `Đã tạo đơn hàng, hoa hồng ${formatVnd(order.commission_amount)} đang chờ duyệt`
+          ? `Đã tạo đơn hàng, hoa hồng ${formatVnd(order.commission_amount ?? 0)} đang chờ duyệt`
           : "Đã tạo đơn hàng (không khớp cộng tác viên nào, không tính hoa hồng)",
       );
     },
@@ -73,12 +75,14 @@ export function AdminOrdersPage() {
 
   const [processingId, setProcessingId] = useState<string | null>(null);
   const updateStatus = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: OrderStatus }) =>
-      ordersService.updateOrderStatus(id, status),
+    mutationFn: ({ id, status }: { id: string; status: "approved" | "cancelled" }) =>
+      ordersService.updateCommissionStatus(id, status),
     onMutate: ({ id }) => setProcessingId(id),
     onSuccess: (order) => {
       invalidate();
-      toast.success(order.status === "approved" ? "Đã duyệt đơn hàng" : "Đã từ chối đơn hàng");
+      toast.success(
+        order.commission_status === "approved" ? "Đã duyệt hoa hồng" : "Đã huỷ hoa hồng",
+      );
     },
     onError: (e: Error) => toast.error("Không cập nhật được đơn hàng", { description: e.message }),
     onSettled: () => setProcessingId(null),
@@ -86,12 +90,14 @@ export function AdminOrdersPage() {
 
   const canSubmit =
     Boolean(affiliateCode.trim()) &&
-    Number(orderValue.replace(/\D/g, "")) > 0 &&
+    Number(finalAmount.replace(/\D/g, "")) > 0 &&
+    Boolean(customerName.trim()) &&
+    Boolean(customerPhone.trim()) &&
     !createOrder.isPending;
 
   const orders: Order[] = ordersQuery.data ?? [];
-  const pending = orders.filter((o) => o.status === "pending");
-  const resolved = orders.filter((o) => o.status !== "pending");
+  const pending = orders.filter((o) => o.commission_status === "pending");
+  const resolved = orders.filter((o) => o.commission_status !== "pending");
 
   return (
     <AppLayout
@@ -118,15 +124,18 @@ export function AdminOrdersPage() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="order-value">Giá trị đơn hàng (đ)</Label>
+            <Label htmlFor="final-amount">Giá trị đơn hàng thực thu (đ)</Label>
             <Input
-              id="order-value"
+              id="final-amount"
               inputMode="numeric"
               className="h-12"
               placeholder="1680000"
-              value={orderValue}
-              onChange={(e) => setOrderValue(e.target.value)}
+              value={finalAmount}
+              onChange={(e) => setFinalAmount(e.target.value)}
             />
+            <p className="text-xs text-muted-foreground">
+              Hoa hồng được tính trên số tiền này (sau khi trừ giảm giá).
+            </p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="campaign-slug">Campaign (tuỳ chọn)</Label>
@@ -142,7 +151,7 @@ export function AdminOrdersPage() {
             </p>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="customer-name">Tên khách hàng (tuỳ chọn)</Label>
+            <Label htmlFor="customer-name">Tên khách hàng</Label>
             <Input
               id="customer-name"
               className="h-12"
@@ -151,7 +160,7 @@ export function AdminOrdersPage() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="customer-phone">SĐT khách hàng (tuỳ chọn)</Label>
+            <Label htmlFor="customer-phone">SĐT khách hàng</Label>
             <Input
               id="customer-phone"
               className="h-12"
@@ -212,11 +221,11 @@ export function AdminOrdersPage() {
                             variant="outline"
                             disabled={processingId === order.id}
                             onClick={() =>
-                              updateStatus.mutate({ id: order.id, status: "rejected" })
+                              updateStatus.mutate({ id: order.id, status: "cancelled" })
                             }
                           >
                             <XCircle className="mr-2 h-4 w-4" />
-                            Từ chối
+                            Huỷ
                           </Button>
                         </div>
                       </li>
@@ -228,9 +237,7 @@ export function AdminOrdersPage() {
               <section>
                 <h2 className="mb-3 font-display text-lg font-semibold">Đã xử lý</h2>
                 {resolved.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    Chưa có đơn nào được duyệt/từ chối.
-                  </p>
+                  <p className="text-sm text-muted-foreground">Chưa có đơn nào được duyệt/huỷ.</p>
                 ) : (
                   <ul className="grid gap-3">
                     {resolved.map((order) => (
@@ -257,8 +264,14 @@ function OrderSummary({ order }: { order: Order }) {
     <div className="flex flex-wrap items-start gap-2">
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="font-display text-lg font-semibold">{formatVnd(order.order_value)}</span>
-          <Badge className={STATUS_BADGE[order.status]}>{ORDER_STATUS_LABEL[order.status]}</Badge>
+          <span className="font-display text-lg font-semibold">
+            {formatVnd(order.final_amount)}
+          </span>
+          {order.commission_status ? (
+            <Badge className={STATUS_BADGE[order.commission_status]}>
+              {COMMISSION_STATUS_LABEL[order.commission_status]}
+            </Badge>
+          ) : null}
           {!order.affiliate_id ? (
             <Badge variant="outline" className="text-muted-foreground">
               Không khớp CTV
@@ -266,14 +279,12 @@ function OrderSummary({ order }: { order: Order }) {
           ) : null}
         </div>
         <p className="mt-1 text-sm text-muted-foreground">
-          Mã CTV: {order.affiliate_code || "—"}
-          {order.affiliate_id ? ` · Hoa hồng: ${formatVnd(order.commission_amount)}` : ""}
+          Mã đơn: {order.order_code}
+          {order.affiliate_id ? ` · Hoa hồng: ${formatVnd(order.commission_amount ?? 0)}` : ""}
         </p>
-        {order.customer_name || order.customer_phone ? (
-          <p className="mt-1 text-sm text-muted-foreground">
-            {order.customer_name} {order.customer_phone ? `· ${order.customer_phone}` : ""}
-          </p>
-        ) : null}
+        <p className="mt-1 text-sm text-muted-foreground">
+          {order.customer_name} · {order.customer_phone}
+        </p>
       </div>
       <span className="text-xs text-muted-foreground">{formatDate(order.created_at)}</span>
     </div>

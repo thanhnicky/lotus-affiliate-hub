@@ -95,34 +95,45 @@ export interface DashboardStats {
   available_commission: number;
 }
 
-export type OrderStatus = "pending" | "approved" | "rejected";
+/** Status of the commission on an order. Distinct from the order's own
+ * fulfillment (order_status) and payment (payment_status), which this
+ * feature does not touch. */
+export type CommissionStatus = "pending" | "approved" | "paid" | "cancelled" | "fraud";
 
 export interface Order {
   id: string;
-  external_reference: string;
+  order_code: string;
+  customer_name: string;
+  customer_phone: string;
+  customer_email: string | null;
+  total_amount: number;
+  discount_amount: number;
+  final_amount: number;
   affiliate_id: string | null;
   affiliate_link_id: string | null;
-  affiliate_code: string | null;
-  order_value: number;
   commission_rate: number | null;
-  commission_amount: number;
-  customer_name: string | null;
-  customer_phone: string | null;
-  status: OrderStatus;
-  source: string;
-  note: string | null;
-  created_by: string | null;
-  approved_by: string | null;
-  approved_at: string | null;
+  commission_amount: number | null;
+  commission_status: CommissionStatus | null;
+  order_status: string;
+  payment_status: string;
+  payment_method: string | null;
+  shipping_address: string | null;
+  notes: string | null;
   created_at: string;
   updated_at: string;
 }
 
 export interface CreateOrderInput {
-  external_reference: string;
+  order_code: string;
   affiliate_code: string;
-  order_value: number;
-  customer_name?: string | null | undefined;
-  customer_phone?: string | null | undefined;
+  final_amount: number;
+  customer_name: string;
+  customer_phone: string;
+  total_amount?: number | null | undefined;
+  discount_amount?: number | null | undefined;
+  customer_email?: string | null | undefined;
   campaign_slug?: string | null | undefined;
+  payment_method?: string | null | undefined;
+  shipping_address?: string | null | undefined;
+  notes?: string | null | undefined;
 }

@@ -1,24 +1,26 @@
 import { supabase } from "@/integrations/supabase/client";
-import { ServiceError, type CreateOrderInput, type Order, type OrderStatus } from "@/types";
+import { ServiceError, type CommissionStatus, type CreateOrderInput, type Order } from "@/types";
 
 function mapOrder(row: any): Order {
   return {
     id: row.id,
-    external_reference: row.external_reference,
-    affiliate_id: row.affiliate_id,
-    affiliate_link_id: row.affiliate_link_id,
-    affiliate_code: row.affiliate_code,
-    order_value: Number(row.order_value ?? 0),
-    commission_rate: row.commission_rate === null ? null : Number(row.commission_rate),
-    commission_amount: Number(row.commission_amount ?? 0),
+    order_code: row.order_code,
     customer_name: row.customer_name,
     customer_phone: row.customer_phone,
-    status: row.status,
-    source: row.source,
-    note: row.note,
-    created_by: row.created_by,
-    approved_by: row.approved_by,
-    approved_at: row.approved_at,
+    customer_email: row.customer_email,
+    total_amount: Number(row.total_amount ?? 0),
+    discount_amount: Number(row.discount_amount ?? 0),
+    final_amount: Number(row.final_amount ?? 0),
+    affiliate_id: row.affiliate_id,
+    affiliate_link_id: row.affiliate_link_id,
+    commission_rate: row.commission_rate === null ? null : Number(row.commission_rate),
+    commission_amount: row.commission_amount === null ? null : Number(row.commission_amount),
+    commission_status: row.commission_status,
+    order_status: row.order_status,
+    payment_status: row.payment_status,
+    payment_method: row.payment_method,
+    shipping_address: row.shipping_address,
+    notes: row.notes,
     created_at: row.created_at,
     updated_at: row.updated_at,
   };
@@ -43,18 +45,26 @@ export const ordersService = {
     if (!input.affiliate_code?.trim()) {
       throw new ServiceError("Vui lòng nhập mã cộng tác viên.");
     }
-    if (!Number.isFinite(input.order_value) || input.order_value <= 0) {
+    if (!Number.isFinite(input.final_amount) || input.final_amount <= 0) {
       throw new ServiceError("Giá trị đơn hàng không hợp lệ.");
+    }
+    if (!input.customer_name?.trim() || !input.customer_phone?.trim()) {
+      throw new ServiceError("Vui lòng nhập tên và số điện thoại khách hàng.");
     }
 
     const { data, error } = await supabase.rpc("admin_create_order", {
-      p_external_reference: input.external_reference,
+      p_order_code: input.order_code,
       p_affiliate_code: input.affiliate_code.trim(),
-      p_order_value: input.order_value,
-      p_customer_name: input.customer_name?.trim() || null,
-      p_customer_phone: input.customer_phone?.trim() || null,
+      p_final_amount: input.final_amount,
+      p_customer_name: input.customer_name.trim(),
+      p_customer_phone: input.customer_phone.trim(),
+      p_total_amount: input.total_amount ?? null,
+      p_discount_amount: input.discount_amount ?? null,
+      p_customer_email: input.customer_email?.trim() || null,
       p_campaign_slug: input.campaign_slug?.trim() || null,
-      p_source: "manual",
+      p_payment_method: input.payment_method?.trim() || null,
+      p_shipping_address: input.shipping_address?.trim() || null,
+      p_notes: input.notes?.trim() || null,
     });
 
     if (error) {
@@ -63,9 +73,13 @@ export const ordersService = {
     return mapOrder(data);
   },
 
-  /** Admin-only: approve or reject a pending order. */
-  async updateOrderStatus(orderId: string, status: OrderStatus, note?: string): Promise<Order> {
-    const { data, error } = await supabase.rpc("admin_update_order_status", {
+  /** Admin-only: approve or cancel the commission on a pending order. */
+  async updateCommissionStatus(
+    orderId: string,
+    status: Extract<CommissionStatus, "approved" | "cancelled">,
+    note?: string,
+  ): Promise<Order> {
+    const { data, error } = await supabase.rpc("admin_update_commission_status", {
       p_order_id: orderId,
       p_status: status,
       p_note: note?.trim() || null,

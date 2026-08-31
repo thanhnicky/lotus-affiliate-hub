@@ -9,8 +9,9 @@ import { getSupabaseAdmin } from "./supabaseAdmin";
  *
  * All the actual order/commission logic lives in the admin_create_order
  * Postgres function (shared with the admin portal's manual "create order"
- * action), including the external_reference-based idempotency that makes it
- * safe for the automation to re-POST the same sheet row.
+ * action), including the order_code-based idempotency (order_code is UNIQUE
+ * on the orders table) that makes it safe for the automation to re-POST the
+ * same sheet row.
  */
 export async function handleSyncOrder(request: Request): Promise<Response> {
   const url = new URL(request.url);
@@ -45,9 +46,17 @@ export async function handleSyncOrder(request: Request): Promise<Response> {
   }
   const raw = (body && typeof body === "object" ? body : {}) as Record<string, unknown>;
 
-  const externalReference = str(raw["external_reference"] ?? raw["order_id"]);
-  const orderValue = Number(raw["order_value"] ?? raw["totalPrice"]);
-  if (!externalReference || !Number.isFinite(orderValue) || orderValue <= 0) {
+  const orderCode = str(raw["order_code"] ?? raw["order_id"]);
+  const finalAmount = Number(raw["final_amount"] ?? raw["totalPrice"]);
+  const customerName = str(raw["customer_name"] ?? raw["name"]);
+  const customerPhone = str(raw["customer_phone"] ?? raw["phone"]);
+  if (
+    !orderCode ||
+    !Number.isFinite(finalAmount) ||
+    finalAmount <= 0 ||
+    !customerName ||
+    !customerPhone
+  ) {
     return json({ success: false, error: "Dữ liệu yêu cầu không hợp lệ." }, 400);
   }
 
@@ -57,14 +66,22 @@ export async function handleSyncOrder(request: Request): Promise<Response> {
 
   try {
     const supabaseAdmin = getSupabaseAdmin();
+    const totalAmount = Number(raw["total_amount"] ?? raw["originalPrice"]);
+    const discountAmount = Number(raw["discount_amount"]);
+
     const { data, error } = await supabaseAdmin.rpc("admin_create_order", {
-      p_external_reference: externalReference,
+      p_order_code: orderCode,
       p_affiliate_code: str(raw["affiliate_code"]) || null,
-      p_order_value: orderValue,
-      p_customer_name: str(raw["customer_name"] ?? raw["name"]) || null,
-      p_customer_phone: str(raw["customer_phone"] ?? raw["phone"]) || null,
+      p_final_amount: finalAmount,
+      p_customer_name: customerName,
+      p_customer_phone: customerPhone,
+      p_total_amount: Number.isFinite(totalAmount) && totalAmount > 0 ? totalAmount : null,
+      p_discount_amount: Number.isFinite(discountAmount) ? discountAmount : null,
+      p_customer_email: str(raw["customer_email"] ?? raw["email"]) || null,
       p_campaign_slug: str(raw["campaign_slug"]) || null,
-      p_source: "sheets_sync",
+      p_payment_method: str(raw["payment_method"] ?? raw["paymentMethod"]) || null,
+      p_shipping_address: str(raw["shipping_address"] ?? raw["province"]) || null,
+      p_notes: str(raw["notes"] ?? raw["note"]) || null,
     });
 
     if (error) {
