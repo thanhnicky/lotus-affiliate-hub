@@ -234,7 +234,7 @@ function TopCtvEditor({
           />
         </div>
         <div className="space-y-1.5">
-          <Label className="text-xs">Doanh thu (VNĐ)</Label>
+          <Label className="text-xs">Hoa hồng ghi nhận (VNĐ)</Label>
           <Input
             className="h-10"
             inputMode="numeric"
