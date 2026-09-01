@@ -50,10 +50,15 @@ BEGIN
   FROM public.orders
   WHERE created_at >= v_start AND created_at < v_end;
 
+  -- Delivered orders: either order_status is delivered/completed,
+  -- or commission has been approved/paid (admin approval implies delivered)
   SELECT COUNT(*) INTO delivered_orders
   FROM public.orders
   WHERE created_at >= v_start AND created_at < v_end
-    AND order_status IN ('delivered', 'completed', 'giao_thanh_cong');
+    AND (
+      order_status IN ('delivered', 'completed', 'giao_thanh_cong')
+      OR commission_status IN ('approved', 'paid')
+    );
 
   SELECT COALESCE(SUM(commission_amount), 0) INTO pending_commission
   FROM public.orders
@@ -143,7 +148,7 @@ BEGIN
     SELECT
       o.affiliate_id,
       COUNT(*)::bigint AS orders,
-      COUNT(*) FILTER (WHERE o.order_status IN ('delivered','completed','giao_thanh_cong'))::bigint AS delivered,
+      COUNT(*) FILTER (WHERE o.order_status IN ('delivered','completed','giao_thanh_cong') OR o.commission_status IN ('approved','paid'))::bigint AS delivered,
       COALESCE(SUM(o.commission_amount) FILTER (WHERE o.commission_status = 'pending'), 0)::numeric AS pending,
       COALESCE(SUM(o.commission_amount) FILTER (WHERE o.commission_status = 'approved'), 0)::numeric AS available,
       COALESCE(SUM(o.commission_amount) FILTER (WHERE o.commission_status = 'paid'), 0)::numeric AS paid
