@@ -296,10 +296,58 @@ function Home() {
             <p className="mt-2 text-sm text-muted-foreground">
               Những cộng tác viên đang kiếm hoa hồng thật từ sơn Lotus.
             </p>
-            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {topCtv.map((ctv, i) => (
-                <TopCtvCard key={ctv.id} entry={ctv} rank={i + 1} />
-              ))}
+            <div className="mt-6 overflow-hidden rounded-2xl border border-border/50 bg-card">
+              {/* Desktop table */}
+              <table className="hidden w-full text-sm sm:table">
+                <thead>
+                  <tr className="border-b border-border/50 text-left text-xs text-muted-foreground">
+                    <th className="px-4 py-3 font-medium">#</th>
+                    <th className="px-4 py-3 font-medium">Tên</th>
+                    <th className="px-4 py-3 font-medium">Mã CTV</th>
+                    <th className="px-4 py-3 text-right font-medium">Doanh thu</th>
+                    <th className="px-4 py-3 text-right font-medium">Số đơn hàng</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topCtv.map((ctv, i) => (
+                    <tr key={ctv.id} className="border-b border-border/30 last:border-0">
+                      <td className="px-4 py-3">
+                        <RankBadge rank={i + 1} />
+                      </td>
+                      <td className="px-4 py-3 font-medium">{ctv.display_name}</td>
+                      <td className="px-4 py-3">
+                        <code className="rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                          {ctv.affiliate_code || "—"}
+                        </code>
+                      </td>
+                      <td className="px-4 py-3 text-right font-semibold text-primary">
+                        {ctv.revenue_label || "—"}
+                      </td>
+                      <td className="px-4 py-3 text-right text-muted-foreground">
+                        {ctv.orders_label || "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {/* Mobile list */}
+              <ul className="divide-y divide-border/30 sm:hidden">
+                {topCtv.map((ctv, i) => (
+                  <li key={ctv.id} className="flex items-center gap-3 p-4">
+                    <RankBadge rank={i + 1} />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium">{ctv.display_name}</p>
+                      <code className="text-xs text-muted-foreground">
+                        {ctv.affiliate_code || "—"}
+                      </code>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-primary">{ctv.revenue_label || "—"}</p>
+                      <p className="text-xs text-muted-foreground">{ctv.orders_label || "—"}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             </div>
           </section>
         ) : null}
@@ -585,46 +633,32 @@ function KeyNumber({ value, label }: { value: string; label: string }) {
   );
 }
 
-/** TOP CTV card for homepage */
-function TopCtvCard({
-  entry,
-  rank,
-}: {
-  entry: {
-    display_name: string;
-    affiliate_code: string;
-    revenue_label: string;
-    orders_label: string;
-  };
-  rank: number;
-}) {
-  const icon =
-    rank === 1 ? (
-      <Crown className="h-5 w-5 text-amber-600" />
-    ) : rank === 2 ? (
-      <Medal className="h-5 w-5 text-slate-500" />
-    ) : rank === 3 ? (
-      <Medal className="h-5 w-5 text-orange-600" />
-    ) : null;
-
+/** Rank badge for TOP CTV table */
+function RankBadge({ rank }: { rank: number }) {
+  if (rank === 1) {
+    return (
+      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+        <Crown className="h-4 w-4" />
+      </span>
+    );
+  }
+  if (rank === 2) {
+    return (
+      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-200 text-slate-600">
+        <Medal className="h-4 w-4" />
+      </span>
+    );
+  }
+  if (rank === 3) {
+    return (
+      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-orange-100 text-orange-700">
+        <Medal className="h-4 w-4" />
+      </span>
+    );
+  }
   return (
-    <div className="rounded-2xl border border-border/50 bg-card p-5">
-      <div className="flex items-center gap-2">
-        {icon}
-        <span className="text-xs font-medium text-muted-foreground">Hạng {rank}</span>
-      </div>
-      <p className="mt-2 font-display text-base font-semibold">{entry.display_name}</p>
-      {entry.affiliate_code ? (
-        <code className="mt-0.5 inline-block rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-          {entry.affiliate_code}
-        </code>
-      ) : null}
-      {entry.revenue_label ? (
-        <p className="mt-3 font-display text-lg font-bold text-primary">{entry.revenue_label}</p>
-      ) : null}
-      {entry.orders_label ? (
-        <p className="mt-0.5 text-xs text-muted-foreground">{entry.orders_label}</p>
-      ) : null}
-    </div>
+    <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-muted text-sm font-semibold text-muted-foreground">
+      {rank}
+    </span>
   );
 }
