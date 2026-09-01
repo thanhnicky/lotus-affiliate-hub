@@ -37,7 +37,13 @@ export function AdminTopCtvPage() {
         // New entries (id starts with "new-") don't have a real UUID yet.
         // Pass them without id so the DB generates one via gen_random_uuid().
         const isNew = entry.id.startsWith("new-");
-        await adminService.upsertTopCtv(isNew ? { ...entry, id: undefined } : entry);
+        // Format revenue_label: raw number -> VND string with thousand separators
+        const rawRevenue = (entry.revenue_label || "").replace(/\D/g, "");
+        const formattedRevenue = rawRevenue
+          ? new Intl.NumberFormat("vi-VN").format(Number(rawRevenue)) + "đ"
+          : "";
+        const payload = { ...entry, revenue_label: formattedRevenue };
+        await adminService.upsertTopCtv(isNew ? { ...payload, id: undefined } : payload);
       }
     },
     onSuccess: () => {
@@ -227,12 +233,16 @@ function TopCtvEditor({
           />
         </div>
         <div className="space-y-1.5">
-          <Label className="text-xs">Doanh thu</Label>
+          <Label className="text-xs">Doanh thu (VNĐ)</Label>
           <Input
             className="h-10"
-            placeholder="vd: 45.000.000đ"
+            inputMode="numeric"
+            placeholder="vd: 45000000"
             value={entry.revenue_label}
-            onChange={(e) => onChange("revenue_label", e.target.value)}
+            onChange={(e) => {
+              const raw = e.target.value.replace(/\D/g, "");
+              onChange("revenue_label", raw);
+            }}
           />
         </div>
       </div>

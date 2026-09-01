@@ -294,7 +294,7 @@ function Home() {
               <h2 className="font-display text-2xl font-semibold tracking-tight">CTV xuất sắc</h2>
             </div>
             <p className="mt-2 text-sm text-muted-foreground">
-              Những cộng tác viên đang kiếm hoa hồng thật từ sơn Lotus.
+              Những cộng tác viên đang kiếm hoa hồng thật từ sơn Lotus — 30 ngày gần nhất.
             </p>
             <div className="mt-6 overflow-hidden rounded-2xl border border-border/50 bg-card">
               {/* Desktop table */}
