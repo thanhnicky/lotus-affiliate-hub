@@ -9,9 +9,6 @@ import {
   ChevronDown,
   Check,
   Hammer,
-  Factory,
-  Building2,
-  PencilRuler,
   Package,
   Megaphone,
   Link2,
@@ -71,21 +68,6 @@ const TARGET_GROUPS = [
     text: "Có khách cần sơn gỗ, sơn kim loại, sơn giả gỗ.",
   },
   {
-    icon: Factory,
-    title: "Chủ xưởng gỗ, sắt, nhôm",
-    text: "Sản xuất nội thất, cơ khí — khách hay hỏi sơn.",
-  },
-  {
-    icon: Building2,
-    title: "Nhà thầu xây dựng",
-    text: "Thi công hoàn thiện, có tệp khách sửa nhà.",
-  },
-  {
-    icon: PencilRuler,
-    title: "Kiến trúc sư, thiết kế nội thất",
-    text: "Tư vấn giải pháp hoàn thiện cho khách.",
-  },
-  {
     icon: Package,
     title: "Người bán vật liệu, phụ kiện",
     text: "Có khách cần sơn thêm khi mua vật liệu.",
@@ -94,6 +76,11 @@ const TARGET_GROUPS = [
     icon: Megaphone,
     title: "Creator/KOC về nhà cửa",
     text: "Có tệp người quan tâm nội thất, sửa nhà.",
+  },
+  {
+    icon: BarChart3,
+    title: "Cá nhân/fanpage có traffic lớn",
+    text: "Đã có kinh nghiệm làm affiliate, muốn thêm dòng sơn.",
   },
 ];
 
