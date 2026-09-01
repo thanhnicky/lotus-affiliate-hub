@@ -452,7 +452,7 @@ function Home() {
           <div className="mt-4 grid grid-cols-3 gap-3">
             <KeyNumber value="10%" label="hoa hồng / đơn giao thành công" />
             <KeyNumber value="60 ngày" label="ghi nhận giới thiệu" />
-            <KeyNumber value="1–5" label="thanh toán hằng tháng" />
+            <KeyNumber value="1–5" label="thanh toán HH hàng tháng" />
           </div>
         </section>
 
