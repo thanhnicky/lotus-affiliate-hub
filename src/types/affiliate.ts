@@ -107,6 +107,17 @@ export interface DashboardStats {
   available_commission: number;
 }
 
+/** Admin dashboard stats across all affiliates. */
+export interface AdminDashboardStats {
+  total_clicks: number;
+  total_leads: number;
+  total_orders: number;
+  delivered_orders: number;
+  pending_commission: number;
+  available_commission: number;
+  paid_commission: number;
+}
+
 /** Status of the commission on an order. Distinct from the order's own
  * fulfillment (order_status) and payment (payment_status), which this
  * feature does not touch. */

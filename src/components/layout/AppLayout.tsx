@@ -35,6 +35,7 @@ const NAV: NavItem[] = [
 ];
 
 const ADMIN_NAV: NavItem[] = [
+  { to: "/admin-dashboard", label: "Tổng quan", icon: LayoutDashboard },
   { to: "/admin-orders", label: "Quản lý đơn hàng", icon: ShoppingBag },
   { to: "/admin-affiliates", label: "Quản lý CTV", icon: Users },
 ];

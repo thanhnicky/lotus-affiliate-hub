@@ -15,6 +15,7 @@ import { Route as ChinhSachRouteImport } from './routes/chinh-sach'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as AuthenticatedAdminAffiliatesRouteImport } from './routes/_authenticated/admin-affiliates'
+import { Route as AuthenticatedAdminDashboardRouteImport } from './routes/_authenticated/admin-dashboard'
 import { Route as AuthenticatedAdminOrdersRouteImport } from './routes/_authenticated/admin-orders'
 import { Route as AuthenticatedCreateLinkRouteImport } from './routes/_authenticated/create-link'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -54,6 +55,12 @@ const AuthenticatedAdminAffiliatesRoute =
   AuthenticatedAdminAffiliatesRouteImport.update({
     id: '/admin-affiliates',
     path: '/admin-affiliates',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminDashboardRoute =
+  AuthenticatedAdminDashboardRouteImport.update({
+    id: '/admin-dashboard',
+    path: '/admin-dashboard',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAdminOrdersRoute =
@@ -115,6 +122,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/admin-affiliates': typeof AuthenticatedAdminAffiliatesRoute
+  '/admin-dashboard': typeof AuthenticatedAdminDashboardRoute
   '/admin-orders': typeof AuthenticatedAdminOrdersRoute
   '/create-link': typeof AuthenticatedCreateLinkRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -132,6 +140,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/admin-affiliates': typeof AuthenticatedAdminAffiliatesRoute
+  '/admin-dashboard': typeof AuthenticatedAdminDashboardRoute
   '/admin-orders': typeof AuthenticatedAdminOrdersRoute
   '/create-link': typeof AuthenticatedCreateLinkRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -151,6 +160,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/_authenticated/admin-affiliates': typeof AuthenticatedAdminAffiliatesRoute
+  '/_authenticated/admin-dashboard': typeof AuthenticatedAdminDashboardRoute
   '/_authenticated/admin-orders': typeof AuthenticatedAdminOrdersRoute
   '/_authenticated/create-link': typeof AuthenticatedCreateLinkRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -170,6 +180,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/admin-affiliates'
+    | '/admin-dashboard'
     | '/admin-orders'
     | '/create-link'
     | '/dashboard'
@@ -187,6 +198,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/admin-affiliates'
+    | '/admin-dashboard'
     | '/admin-orders'
     | '/create-link'
     | '/dashboard'
@@ -205,6 +217,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/_authenticated/admin-affiliates'
+    | '/_authenticated/admin-dashboard'
     | '/_authenticated/admin-orders'
     | '/_authenticated/create-link'
     | '/_authenticated/dashboard'
@@ -268,6 +281,13 @@ declare module '@tanstack/react-router' {
       path: '/admin-affiliates'
       fullPath: '/admin-affiliates'
       preLoaderRoute: typeof AuthenticatedAdminAffiliatesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin-dashboard': {
+      id: '/_authenticated/admin-dashboard'
+      path: '/admin-dashboard'
+      fullPath: '/admin-dashboard'
+      preLoaderRoute: typeof AuthenticatedAdminDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin-orders': {
@@ -345,6 +365,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminAffiliatesRoute: typeof AuthenticatedAdminAffiliatesRoute
+  AuthenticatedAdminDashboardRoute: typeof AuthenticatedAdminDashboardRoute
   AuthenticatedAdminOrdersRoute: typeof AuthenticatedAdminOrdersRoute
   AuthenticatedCreateLinkRoute: typeof AuthenticatedCreateLinkRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
@@ -358,6 +379,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminAffiliatesRoute: AuthenticatedAdminAffiliatesRoute,
+  AuthenticatedAdminDashboardRoute: AuthenticatedAdminDashboardRoute,
   AuthenticatedAdminOrdersRoute: AuthenticatedAdminOrdersRoute,
   AuthenticatedCreateLinkRoute: AuthenticatedCreateLinkRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,

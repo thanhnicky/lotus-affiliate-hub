@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { ServiceError, type AdminAffiliate } from "@/types";
+import { ServiceError, type AdminAffiliate, type AdminDashboardStats } from "@/types";
 
 function mapAdminAffiliate(row: any): AdminAffiliate {
   return {
@@ -38,5 +38,36 @@ export const adminService = {
       throw new ServiceError(error.message || "Không thể tải danh sách cộng tác viên.");
     }
     return (data ?? []).map(mapAdminAffiliate);
+  },
+
+  /** Admin-only: dashboard stats across all affiliates. */
+  async getDashboardStats(period: "all" | "week" | "month" = "all"): Promise<AdminDashboardStats> {
+    const { data, error } = await supabase.rpc("admin_dashboard_stats", {
+      p_period: period,
+    });
+    if (error) {
+      throw new ServiceError(error.message || "Không thể tải thống kê.");
+    }
+    const row = (data ?? [])[0];
+    if (!row) {
+      return {
+        total_clicks: 0,
+        total_leads: 0,
+        total_orders: 0,
+        delivered_orders: 0,
+        pending_commission: 0,
+        available_commission: 0,
+        paid_commission: 0,
+      };
+    }
+    return {
+      total_clicks: Number(row.total_clicks ?? 0),
+      total_leads: Number(row.total_leads ?? 0),
+      total_orders: Number(row.total_orders ?? 0),
+      delivered_orders: Number(row.delivered_orders ?? 0),
+      pending_commission: Number(row.pending_commission ?? 0),
+      available_commission: Number(row.available_commission ?? 0),
+      paid_commission: Number(row.paid_commission ?? 0),
+    };
   },
 };
