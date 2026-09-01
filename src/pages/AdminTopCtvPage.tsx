@@ -35,7 +35,10 @@ export function AdminTopCtvPage() {
   const saveMutation = useMutation({
     mutationFn: async () => {
       for (const entry of entries) {
-        await adminService.upsertTopCtv(entry);
+        // New entries (id starts with "new-") don't have a real UUID yet.
+        // Pass them without id so the DB generates one via gen_random_uuid().
+        const isNew = entry.id.startsWith("new-");
+        await adminService.upsertTopCtv(isNew ? { ...entry, id: undefined } : entry);
       }
     },
     onSuccess: () => {
