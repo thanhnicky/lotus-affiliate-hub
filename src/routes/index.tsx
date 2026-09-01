@@ -1,6 +1,29 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Phone, Mail, MapPin, ExternalLink, ChevronDown } from "lucide-react";
+import {
+  ArrowRight,
+  Phone,
+  Mail,
+  MapPin,
+  ExternalLink,
+  ChevronDown,
+  Check,
+  Hammer,
+  Factory,
+  Building2,
+  PencilRuler,
+  Package,
+  Megaphone,
+  Link2,
+  Share2,
+  Headphones,
+  Wallet,
+  BarChart3,
+  Clock,
+  ShieldCheck,
+  Image,
+  Lightbulb,
+} from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -14,63 +37,156 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Kiếm thu nhập 10% hoa hồng trên mỗi đơn hàng sơn Lotus giao thành công. Đăng ký miễn phí, tạo link tiếp thị, chia sẻ và nhận hoa hồng hàng tháng.",
+          "Có khách cần sơn? Giới thiệu Lotus, nhận 10% hoa hồng mỗi đơn giao thành công. Đăng ký miễn phí, không cần nhập hàng, không cần tự chốt đơn.",
       },
       { property: "og:title", content: "Cộng tác viên sơn Lotus — Hoa hồng 10%" },
       {
         property: "og:description",
         content:
-          "Đăng ký làm cộng tác viên sơn Lotus: 10% hoa hồng mỗi đơn giao thành công, thanh toán hàng tháng, theo dõi minh bạch.",
+          "Bạn chỉ cần kết nối đúng khách. Lotus tư vấn, báo giá, giao hàng. 10% hoa hồng mỗi đơn giao thành công. Đăng ký miễn phí.",
       },
     ],
   }),
   component: Home,
 });
 
-const STEPS = [
+// ─── Data ───
+
+const HERO_BENEFITS = [
+  "Không cần nhập hàng",
+  "Không cần tự chốt đơn",
+  "Link riêng theo dõi minh bạch",
+];
+
+const COMMISSION_EXAMPLES = [
+  { order: "5.000.000đ", commission: "500.000đ" },
+  { order: "10.000.000đ", commission: "1.000.000đ" },
+  { order: "20.000.000đ", commission: "2.000.000đ" },
+];
+
+const TARGET_GROUPS = [
   {
-    title: "Đăng ký",
-    text: "Tạo tài khoản trong 2 phút. Xác nhận email là xong.",
+    icon: Hammer,
+    title: "Thợ sơn, thợ thi công",
+    text: "Có khách cần sơn gỗ, sơn kim loại, sơn giả gỗ.",
   },
   {
-    title: "Tạo link",
-    text: "Chọn sản phẩm, chọn kênh. Nhận link gắn sẵn mã của bạn.",
+    icon: Factory,
+    title: "Chủ xưởng gỗ, sắt, nhôm",
+    text: "Sản xuất nội thất, cơ khí — khách hay hỏi sơn.",
   },
   {
-    title: "Chia sẻ",
-    text: "Gửi link cho ai cần sơn. Facebook, Zalo, TikTok — tùy bạn.",
+    icon: Building2,
+    title: "Nhà thầu xây dựng",
+    text: "Thi công hoàn thiện, có tệp khách sửa nhà.",
   },
   {
-    title: "Nhận tiền",
-    text: "Đơn giao thành công → 10% hoa hồng. Thanh toán 1-5 hàng tháng.",
+    icon: PencilRuler,
+    title: "Kiến trúc sư, thiết kế nội thất",
+    text: "Tư vấn giải pháp hoàn thiện cho khách.",
   },
+  {
+    icon: Package,
+    title: "Người bán vật liệu, phụ kiện",
+    text: "Có khách cần sơn thêm khi mua vật liệu.",
+  },
+  {
+    icon: Megaphone,
+    title: "Creator/KOC về nhà cửa",
+    text: "Có tệp người quan tâm nội thất, sửa nhà.",
+  },
+];
+
+const FLOW_STEPS = [
+  { num: "1", title: "Tạo link riêng", text: "Chọn nhóm sản phẩm, nhận link gắn mã của bạn." },
+  {
+    num: "2",
+    title: "Chia sẻ cho khách",
+    text: "Gửi link qua Zalo, Facebook, Reels — cho ai cần sơn.",
+  },
+  {
+    num: "3",
+    title: "Lotus lo phần còn lại",
+    text: "Tư vấn kỹ thuật, báo giá, giao hàng cho khách.",
+  },
+  { num: "4", title: "Bạn nhận 10%", text: "Đơn giao thành công → 10% hoa hồng cho bạn." },
+];
+
+const STARTER_KIT = [
+  {
+    icon: Link2,
+    title: "Link giới thiệu riêng",
+    text: "Tạo link cho từng nhóm sản phẩm, theo kênh chia sẻ.",
+  },
+  {
+    icon: BarChart3,
+    title: "Dashboard theo dõi",
+    text: "Xem click, đơn hàng, trạng thái và hoa hồng.",
+  },
+  {
+    icon: Image,
+    title: "Hình ảnh và video sản phẩm",
+    text: "Được Lotus cung cấp khi bắt đầu cộng tác.",
+  },
+  {
+    icon: Lightbulb,
+    title: "Gợi ý cách giới thiệu",
+    text: "Hướng dẫn giới thiệu sản phẩm cho khách đúng nhu cầu.",
+  },
+  {
+    icon: Headphones,
+    title: "Hỗ trợ tư vấn và chốt đơn",
+    text: "Đội ngũ Lotus hỗ trợ khách khi cần tư vấn chuyên sâu.",
+  },
+];
+
+const TRANSPARENCY = [
+  "Link riêng theo từng CTV, gắn mã định danh duy nhất",
+  "Theo dõi lượt click, đơn hàng, trạng thái xử lý và hoa hồng",
+  "Đơn giao thành công được ghi nhận để tính hoa hồng",
+  "Lịch thanh toán cố định: từ ngày 1 đến ngày 5 hằng tháng",
+  "Cookie ghi nhận giới thiệu trong 60 ngày",
 ];
 
 const FAQS = [
   {
-    q: "Tôi không rành kỹ thuật sơn, có làm được không?",
-    a: "Có. Bạn chỉ cần giới thiệu khách đúng nhu cầu; Lotus hỗ trợ tư vấn hệ sơn, màu sắc, quy trình và báo giá.",
+    q: "Tôi không rành về kỹ thuật sơn, có làm CTV được không?",
+    a: "Có. Bạn chỉ cần giới thiệu khách có nhu cầu. Lotus sẽ hỗ trợ tư vấn kỹ thuật, đề xuất hệ sơn, báo giá và xử lý đơn hàng.",
   },
   {
-    q: "Tôi có phải nhập hàng hoặc giao hàng không?",
-    a: "Không. Lotus xử lý tư vấn, xác nhận đơn, giao hàng và hậu mãi; CTV tập trung kết nối khách hàng.",
+    q: "Tôi có cần nhập hàng hoặc bỏ vốn không?",
+    a: "Không. Bạn không cần nhập hàng, giữ tồn kho hay tự giao hàng.",
   },
   {
     q: "Khi nào tôi nhận được hoa hồng?",
-    a: "Hoa hồng được ghi nhận khi đơn giao thành công, sau đó được duyệt và thanh toán theo lịch từ ngày 1 đến ngày 5 hằng tháng.",
+    a: "Hoa hồng được tính khi đơn hàng giao thành công và được thanh toán qua chuyển khoản từ ngày 1 đến ngày 5 hằng tháng.",
   },
   {
-    q: "Tôi bán qua kênh nào?",
-    a: "Bạn có thể chia sẻ link qua Facebook, Zalo, Reels hoặc các kênh cá nhân phù hợp; không chạy quảng cáo trả phí nếu chưa được Lotus cho phép.",
+    q: "Nếu khách chưa mua ngay thì sao?",
+    a: "Link giới thiệu được ghi nhận trong 60 ngày. Trong thời hạn này, nếu khách phát sinh đơn hợp lệ từ link của bạn, hệ thống sẽ ghi nhận theo quy định chương trình.",
+  },
+  {
+    q: "Tôi theo dõi đơn hàng và hoa hồng ở đâu?",
+    a: "Trong tài khoản CTV, bạn có thể theo dõi link, lượt click, đơn hàng, trạng thái xử lý và hoa hồng.",
+  },
+  {
+    q: "Tôi có thể giới thiệu những sản phẩm nào?",
+    a: "Bạn có thể tạo link cho các nhóm sơn giả gỗ trên tấm xi măng, sơn giả gỗ trên kim loại, sơn kim loại gốc nước và sơn gỗ nội–ngoại thất.",
+  },
+  {
+    q: "Đơn hủy hoặc hoàn có được tính hoa hồng không?",
+    a: "Hoa hồng chỉ được tính trên đơn giao thành công theo quy định chương trình.",
   },
 ];
 
 const PRODUCTS_FALLBACK = [
-  { name: "Sơn nội thất Lotus Premium", desc: "Lau chùi dễ dàng, an toàn cho gia đình" },
-  { name: "Sơn ngoại thất Weather Shield", desc: "Chống nắng mưa, bền màu 10 năm" },
-  { name: "Sơn lót chống kiềm Lotus", desc: "Tăng độ bám dính, ngăn kiềm hoá" },
-  { name: "Chống thấm Lotus Max", desc: "Giải pháp chống thấm tường, sân thượng" },
+  { name: "Sơn giả gỗ tấm xi măng", desc: "Hiệu ứng gỗ tự nhiên trên tấm xi măng" },
+  { name: "Sơn giả gỗ trên kim loại", desc: "Tạo vân gỗ trên cửa sắt, nhôm, cơ khí" },
+  { name: "Sơn kim loại gốc nước", desc: "Không mùi, bảo vệ kim loại, dễ thi công" },
+  { name: "Sơn gỗ nội–ngoại thất", desc: "Bền màu, chống va đập, lau chùi dễ" },
 ];
+
+// ─── Component ───
 
 function Home() {
   const pagesQuery = useQuery({
@@ -96,84 +212,186 @@ function Home() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-24">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-28 md:pb-24">
         {/* ===== Hero ===== */}
-        <section className="pt-12 md:pt-24">
+        <section className="pt-10 md:pt-20">
           <p className="text-sm font-medium uppercase tracking-wider text-primary">
-            Chương trình cộng tác viên
+            Chương trình cộng tác viên Sơn Lotus
           </p>
-          <h1 className="mt-4 max-w-2xl font-display text-4xl font-semibold leading-[1.1] tracking-tight md:text-6xl">
-            Giới thiệu sơn Lotus.
-            <br />
-            <span className="text-muted-foreground">Nhận </span>10% hoa hồng.
+          <h1 className="mt-4 max-w-2xl font-display text-3xl font-semibold leading-[1.15] tracking-tight md:text-5xl">
+            Có khách cần sơn? Giới thiệu Lotus, nhận 10% hoa hồng.
           </h1>
-          <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
-            Chia sẻ link sản phẩm với mạng lưới của bạn. Mỗi đơn giao thành công — bạn nhận 10%.
-            Không nhập hàng, không giao hàng, không rủi ro.
+          <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
+            Bạn chỉ cần kết nối đúng khách hàng. Lotus tư vấn kỹ thuật, báo giá và giao hàng. Mỗi
+            đơn giao thành công từ link của bạn, bạn nhận 10% hoa hồng.
           </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+
+          {/* Benefit chips */}
+          <div className="mt-6 flex flex-wrap gap-2">
+            {HERO_BENEFITS.map((b) => (
+              <span
+                key={b}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card px-3 py-1.5 text-sm text-foreground"
+              >
+                <Check className="h-4 w-4 text-primary" />
+                {b}
+              </span>
+            ))}
+          </div>
+
+          {/* CTAs */}
+          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
             <Button asChild className="h-12 px-7 text-base">
               <Link to="/register">
-                Đăng ký — miễn phí
+                Đăng ký CTV miễn phí
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
-            <Button asChild variant="ghost" className="h-12 px-7 text-base">
-              <Link to="/chinh-sach">Đọc chính sách</Link>
+            <Button asChild variant="outline" className="h-12 px-7 text-base">
+              <Link to="/chinh-sach">Xem cách nhận hoa hồng</Link>
+            </Button>
+          </div>
+          <p className="mt-3 text-sm text-muted-foreground">
+            Xác nhận email xong, tạo link giới thiệu ngay.
+          </p>
+        </section>
+
+        {/* ===== Commission examples ===== */}
+        <section className="mt-16 md:mt-24">
+          <h2 className="font-display text-2xl font-semibold tracking-tight">
+            10% là bao nhiêu tiền cho mỗi đơn?
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Ví dụ minh họa theo giá trị đơn giao thành công.
+          </p>
+          <div className="mt-6 grid gap-4 sm:grid-cols-3">
+            {COMMISSION_EXAMPLES.map((ex) => (
+              <div key={ex.order} className="rounded-2xl border border-border/50 bg-card p-6">
+                <p className="text-sm text-muted-foreground">Đơn {ex.order}</p>
+                <p className="mt-2 font-display text-2xl font-semibold text-primary">
+                  {ex.commission}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">hoa hồng của bạn</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Ví dụ minh họa. Hoa hồng thực tế được tính theo giá trị đơn hàng giao thành công.
+          </p>
+
+          {/* Contextual CTA */}
+          <div className="mt-6">
+            <Button asChild variant="ghost" className="h-10 px-5 text-sm font-medium">
+              <Link to="/register">
+                Tạo link và bắt đầu giới thiệu
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
             </Button>
           </div>
         </section>
 
-        {/* ===== How it works — horizontal flow ===== */}
-        <section className="mt-24">
-          <h2 className="font-display text-2xl font-semibold tracking-tight">Cách hoạt động</h2>
+        {/* ===== Target groups ===== */}
+        <section className="mt-16 md:mt-24">
+          <h2 className="font-display text-2xl font-semibold tracking-tight">
+            Ai phù hợp để làm CTV Lotus?
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Bạn thuộc một trong các nhóm dưới đây? Đây là cơ hội dành cho bạn.
+          </p>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {TARGET_GROUPS.map((g) => (
+              <div key={g.title} className="rounded-2xl border border-border/50 bg-card p-5">
+                <g.icon className="h-6 w-6 text-primary" />
+                <h3 className="mt-3 font-display text-sm font-semibold">{g.title}</h3>
+                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{g.text}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-5 text-sm leading-relaxed text-muted-foreground">
+            Chỉ cần bạn có khách phù hợp hoặc có kênh để giới thiệu đúng người cần sơn, bạn có thể
+            bắt đầu.
+          </p>
+        </section>
+
+        {/* ===== Flow: Bạn giới thiệu, Lotus lo phần còn lại ===== */}
+        <section className="mt-16 md:mt-24">
+          <h2 className="font-display text-2xl font-semibold tracking-tight">
+            Bạn giới thiệu khách. Lotus lo phần còn lại.
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+            Bạn không cần ôm hàng, không phải giao hàng và không cần xử lý các câu hỏi kỹ thuật phức
+            tạp. Đội ngũ Lotus sẽ hỗ trợ khách từ lúc cần tư vấn đến khi hoàn tất đơn.
+          </p>
           <div className="mt-8 grid gap-0 border-t border-border/60 sm:grid-cols-4">
-            {STEPS.map((step, i) => (
+            {FLOW_STEPS.map((step) => (
               <div
-                key={step.title}
+                key={step.num}
                 className="border-b border-border/60 py-6 sm:border-b-0 sm:border-r sm:last:border-r-0 sm:px-6 sm:first:pl-0"
               >
-                <span className="font-display text-3xl font-bold text-primary/20">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
+                <span className="font-display text-3xl font-bold text-primary/20">{step.num}</span>
                 <h3 className="mt-2 font-display text-base font-semibold">{step.title}</h3>
                 <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{step.text}</p>
               </div>
             ))}
           </div>
+
+          {/* Contextual CTA */}
+          <div className="mt-6">
+            <Button asChild variant="ghost" className="h-10 px-5 text-sm font-medium">
+              <Link to="/register">
+                Đăng ký để nhận bộ công cụ CTV
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
         </section>
 
-        {/* ===== Key points — editorial, no icon circles ===== */}
-        <section className="mt-24">
-          <div className="grid gap-12 md:grid-cols-2">
-            <div>
-              <h2 className="font-display text-2xl font-semibold tracking-tight">
-                Thu nhập thật, minh bạch
-              </h2>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                Mỗi đơn hàng đều có trạng thái rõ ràng: chờ duyệt, đã duyệt, đã thanh toán. Bạn xem
-                được lượt click, đơn hàng và hoa hồng ngay trên điện thoại — không số ẩn.
-              </p>
-            </div>
-            <div>
-              <h2 className="font-display text-2xl font-semibold tracking-tight">
-                60 ngày ghi nhận
-              </h2>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                Khách click link hôm nay, 59 ngày sau mới mua — vẫn tính hoa hồng cho bạn. Thanh
-                toán chuyển khoản từ ngày 1 đến ngày 5 hàng tháng.
-              </p>
-            </div>
+        {/* ===== Starter kit ===== */}
+        <section className="mt-16 md:mt-24">
+          <h2 className="font-display text-2xl font-semibold tracking-tight">
+            Đăng ký xong, bạn có gì để bắt đầu?
+          </h2>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {STARTER_KIT.map((item) => (
+              <div key={item.title} className="rounded-2xl border border-border/50 bg-card p-5">
+                <item.icon className="h-6 w-6 text-primary" />
+                <h3 className="mt-3 font-display text-sm font-semibold">{item.title}</h3>
+                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{item.text}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ===== Transparency ===== */}
+        <section className="mt-16 md:mt-24">
+          <h2 className="font-display text-2xl font-semibold tracking-tight">
+            Mọi thứ đều có thể theo dõi
+          </h2>
+          <div className="mt-6 rounded-2xl border border-border/50 bg-card p-6">
+            <ul className="space-y-4">
+              {TRANSPARENCY.map((item) => (
+                <li key={item} className="flex items-start gap-3">
+                  <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                  <span className="text-sm leading-relaxed text-foreground">{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          {/* Key numbers highlight */}
+          <div className="mt-4 grid grid-cols-3 gap-3">
+            <KeyNumber value="10%" label="hoa hồng / đơn giao thành công" />
+            <KeyNumber value="60 ngày" label="ghi nhận giới thiệu" />
+            <KeyNumber value="1–5" label="thanh toán hằng tháng" />
           </div>
         </section>
 
         {/* ===== Products ===== */}
-        <section className="mt-24">
+        <section className="mt-16 md:mt-24">
           <h2 className="font-display text-2xl font-semibold tracking-tight">
             Sản phẩm bạn sẽ giới thiệu
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            4 dòng sơn Lotus — mỗi dòng phục vụ một nhu cầu cụ thể.
+            4 nhóm sơn Lotus — mỗi nhóm phục vụ một nhu cầu cụ thể.
           </p>
           <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-5">
             {landingPages.length > 0
@@ -242,28 +460,19 @@ function Home() {
         </section>
 
         {/* ===== FAQ ===== */}
-        <section className="mt-24">
+        <section className="mt-16 md:mt-24">
           <h2 className="font-display text-2xl font-semibold tracking-tight">Câu hỏi thường gặp</h2>
           <div className="mt-6 divide-y divide-border/50 border-y border-border/50">
             {FAQS.map((faq, i) => (
               <FaqItem key={i} q={faq.q} a={faq.a} />
             ))}
           </div>
-        </section>
 
-        {/* ===== Final CTA — quiet, confident ===== */}
-        <section className="mt-24">
-          <div className="flex flex-col items-start gap-4 border-l-2 border-primary pl-6">
-            <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">
-              Bắt đầu hôm nay
-            </h2>
-            <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
-              Đăng ký mất 2 phút. Tạo link đầu tiên ngay sau đó. Chia sẻ và kiếm hoa hồng 10% trên
-              mỗi đơn giao thành công.
-            </p>
-            <Button asChild className="mt-2 h-12 px-7 text-base">
+          {/* CTA near FAQ */}
+          <div className="mt-8">
+            <Button asChild className="h-12 px-7 text-base">
               <Link to="/register">
-                Đăng ký cộng tác viên
+                Bắt đầu miễn phí
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
@@ -308,11 +517,23 @@ function Home() {
           </p>
         </div>
       </footer>
+
+      {/* ===== Sticky CTA (mobile only) ===== */}
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border/60 bg-background/95 p-3 backdrop-blur md:hidden">
+        <Button asChild className="h-11 w-full text-base">
+          <Link to="/register">
+            Đăng ký CTV miễn phí
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Link>
+        </Button>
+      </div>
     </div>
   );
 }
 
-/** Collapsible FAQ item — minimal, no card border. */
+// ─── Sub-components ───
+
+/** Collapsible FAQ item */
 function FaqItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false);
   return (
@@ -329,6 +550,16 @@ function FaqItem({ q, a }: { q: string; a: string }) {
         />
       </button>
       {open ? <div className="pb-5 text-sm leading-relaxed text-muted-foreground">{a}</div> : null}
+    </div>
+  );
+}
+
+/** Key number highlight card */
+function KeyNumber({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="rounded-xl bg-brand px-3 py-4 text-center text-primary-foreground">
+      <p className="font-display text-xl font-bold md:text-2xl">{value}</p>
+      <p className="mt-1 text-[11px] leading-tight opacity-80">{label}</p>
     </div>
   );
 }

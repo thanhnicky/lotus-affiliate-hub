@@ -63,7 +63,7 @@ export async function handleNotifyCommission(request: Request): Promise<Response
   const anonKey =
     (typeof process !== "undefined" && process.env
       ? process.env["VITE_SUPABASE_ANON_KEY"] || process.env["SUPABASE_ANON_KEY"]
-      : undefined) || import.meta.env.VITE_SUPABASE_ANON_KEY;
+      : undefined) || (import.meta as any).env?.VITE_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !anonKey) {
     return json({ error: "Server config error" }, 500);
