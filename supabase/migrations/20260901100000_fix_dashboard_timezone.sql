@@ -12,6 +12,8 @@ RETURNS TABLE (
   total_leads bigint,
   total_orders bigint,
   delivered_orders bigint,
+  total_revenue numeric,
+  delivered_revenue numeric,
   pending_commission numeric,
   available_commission numeric,
   paid_commission numeric
@@ -60,6 +62,20 @@ BEGIN
       OR commission_status IN ('approved', 'paid')
     );
 
+  -- Total revenue (all orders in period)
+  SELECT COALESCE(SUM(final_amount), 0) INTO total_revenue
+  FROM public.orders
+  WHERE created_at >= v_start AND created_at < v_end;
+
+  -- Delivered revenue (orders that are delivered/approved/paid)
+  SELECT COALESCE(SUM(final_amount), 0) INTO delivered_revenue
+  FROM public.orders
+  WHERE created_at >= v_start AND created_at < v_end
+    AND (
+      order_status IN ('delivered', 'completed', 'giao_thanh_cong')
+      OR commission_status IN ('approved', 'paid')
+    );
+
   SELECT COALESCE(SUM(commission_amount), 0) INTO pending_commission
   FROM public.orders
   WHERE created_at >= v_start AND created_at < v_end
@@ -93,6 +109,8 @@ RETURNS TABLE (
   leads bigint,
   orders bigint,
   delivered_orders bigint,
+  total_revenue numeric,
+  delivered_revenue numeric,
   pending_commission numeric,
   available_commission numeric,
   paid_commission numeric
@@ -129,6 +147,8 @@ BEGIN
     COALESCE(lc.leads, 0)::bigint AS leads,
     COALESCE(oc.orders, 0)::bigint AS orders,
     COALESCE(oc.delivered, 0)::bigint AS delivered_orders,
+    COALESCE(oc.total_revenue, 0)::numeric AS total_revenue,
+    COALESCE(oc.delivered_revenue, 0)::numeric AS delivered_revenue,
     COALESCE(oc.pending, 0)::numeric AS pending_commission,
     COALESCE(oc.available, 0)::numeric AS available_commission,
     COALESCE(oc.paid, 0)::numeric AS paid_commission
@@ -149,6 +169,8 @@ BEGIN
       o.affiliate_id,
       COUNT(*)::bigint AS orders,
       COUNT(*) FILTER (WHERE o.order_status IN ('delivered','completed','giao_thanh_cong') OR o.commission_status IN ('approved','paid'))::bigint AS delivered,
+      COALESCE(SUM(o.final_amount), 0)::numeric AS total_revenue,
+      COALESCE(SUM(o.final_amount) FILTER (WHERE o.order_status IN ('delivered','completed','giao_thanh_cong') OR o.commission_status IN ('approved','paid')), 0)::numeric AS delivered_revenue,
       COALESCE(SUM(o.commission_amount) FILTER (WHERE o.commission_status = 'pending'), 0)::numeric AS pending,
       COALESCE(SUM(o.commission_amount) FILTER (WHERE o.commission_status = 'approved'), 0)::numeric AS available,
       COALESCE(SUM(o.commission_amount) FILTER (WHERE o.commission_status = 'paid'), 0)::numeric AS paid

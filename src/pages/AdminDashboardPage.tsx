@@ -8,6 +8,7 @@ import {
   Clock,
   Wallet,
   TrendingUp,
+  DollarSign,
   X,
   ArrowLeft,
 } from "lucide-react";
@@ -26,13 +27,24 @@ import { formatNumber, formatVnd } from "@/lib/format";
 import type { ReactNode } from "react";
 import type { AdminDashboardBreakdownRow } from "@/types";
 
-type Metric = "clicks" | "leads" | "orders" | "delivered" | "pending" | "available" | "paid";
+type Metric =
+  | "clicks"
+  | "leads"
+  | "orders"
+  | "delivered"
+  | "revenue"
+  | "delivered_revenue"
+  | "pending"
+  | "available"
+  | "paid";
 
 const METRIC_LABELS: Record<Metric, string> = {
   clicks: "Tổng lượt click",
   leads: "Lead (Zalo/Phone)",
   orders: "Tổng đơn hàng",
   delivered: "Đơn giao thành công",
+  revenue: "Tổng doanh thu",
+  delivered_revenue: "Doanh thu đã giao",
   pending: "Hoa hồng chờ duyệt",
   available: "Hoa hồng có thể rút",
   paid: "Hoa hồng đã trả",
@@ -189,6 +201,25 @@ export function AdminDashboardPage() {
             />
           </div>
 
+          {/* Revenue cards */}
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <ClickableStatCard
+              icon={<DollarSign className="h-4 w-4" />}
+              label="Tổng doanh thu"
+              value={formatVnd(stats.total_revenue)}
+              hint={month === "all" ? "Tất cả" : monthOptions.find((o) => o.value === month)?.label}
+              onClick={() => setDrillDown("revenue")}
+            />
+            <ClickableStatCard
+              icon={<TrendingUp className="h-4 w-4" />}
+              label="Doanh thu đã giao"
+              value={formatVnd(stats.delivered_revenue)}
+              hint={month === "all" ? "Tất cả" : monthOptions.find((o) => o.value === month)?.label}
+              highlight
+              onClick={() => setDrillDown("delivered_revenue")}
+            />
+          </div>
+
           {/* Commission cards */}
           <div className="mt-3 grid gap-3 sm:grid-cols-3">
             <ClickableStatCard
@@ -280,6 +311,10 @@ function DrillDownView({
         return r.orders > 0;
       case "delivered":
         return r.delivered_orders > 0;
+      case "revenue":
+        return r.total_revenue > 0;
+      case "delivered_revenue":
+        return r.delivered_revenue > 0;
       case "pending":
         return r.pending_commission > 0;
       case "available":
@@ -299,6 +334,10 @@ function DrillDownView({
         return sum + r.orders;
       case "delivered":
         return sum + r.delivered_orders;
+      case "revenue":
+        return sum + r.total_revenue;
+      case "delivered_revenue":
+        return sum + r.delivered_revenue;
       case "pending":
         return sum + r.pending_commission;
       case "available":
@@ -308,7 +347,12 @@ function DrillDownView({
     }
   }, 0);
 
-  const isMoney = metric === "pending" || metric === "available" || metric === "paid";
+  const isMoney =
+    metric === "pending" ||
+    metric === "available" ||
+    metric === "paid" ||
+    metric === "revenue" ||
+    metric === "delivered_revenue";
 
   return (
     <AppLayout
@@ -362,6 +406,7 @@ function DrillDownView({
                 <th className="px-4 py-2.5 font-medium">Mã CTV</th>
                 <th className="px-4 py-2.5 font-medium">Tên CTV</th>
                 <th className="px-4 py-2.5 font-medium text-right">{METRIC_LABELS[metric]}</th>
+                <th className="px-4 py-2.5 font-medium text-right">Doanh thu</th>
                 <th className="px-4 py-2.5 font-medium text-right">Click</th>
                 <th className="px-4 py-2.5 font-medium text-right">Lead</th>
                 <th className="px-4 py-2.5 font-medium text-right">Đơn</th>
@@ -381,6 +426,9 @@ function DrillDownView({
                     {isMoney
                       ? formatVnd(getMetricValue(r, metric))
                       : formatNumber(getMetricValue(r, metric))}
+                  </td>
+                  <td className="px-4 py-3 text-right text-muted-foreground">
+                    {formatVnd(r.total_revenue)}
                   </td>
                   <td className="px-4 py-3 text-right text-muted-foreground">
                     {formatNumber(r.clicks)}
@@ -439,6 +487,10 @@ function getMetricValue(r: AdminDashboardBreakdownRow, metric: Metric): number {
       return r.orders;
     case "delivered":
       return r.delivered_orders;
+    case "revenue":
+      return r.total_revenue;
+    case "delivered_revenue":
+      return r.delivered_revenue;
     case "pending":
       return r.pending_commission;
     case "available":

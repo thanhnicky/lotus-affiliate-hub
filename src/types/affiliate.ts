@@ -113,6 +113,8 @@ export interface AdminDashboardStats {
   total_leads: number;
   total_orders: number;
   delivered_orders: number;
+  total_revenue: number;
+  delivered_revenue: number;
   pending_commission: number;
   available_commission: number;
   paid_commission: number;
@@ -127,6 +129,8 @@ export interface AdminDashboardBreakdownRow {
   leads: number;
   orders: number;
   delivered_orders: number;
+  total_revenue: number;
+  delivered_revenue: number;
   pending_commission: number;
   available_commission: number;
   paid_commission: number;
