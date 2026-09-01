@@ -5,6 +5,11 @@
 -- not counted in month X by the dashboard RPC.
 --
 -- Fix: use Asia/Ho_Chi_Minh timezone for month start/end.
+-- Also: count approved/paid commission as delivered, add revenue columns.
+-- Must DROP first because return type changed (added total_revenue, delivered_revenue).
+
+DROP FUNCTION IF EXISTS public.admin_dashboard_stats(text);
+DROP FUNCTION IF EXISTS public.admin_dashboard_breakdown(text);
 
 CREATE OR REPLACE FUNCTION public.admin_dashboard_stats(p_month text DEFAULT NULL)
 RETURNS TABLE (
