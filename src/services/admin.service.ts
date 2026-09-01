@@ -1,5 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
-import { ServiceError, type AdminAffiliate, type AdminDashboardStats } from "@/types";
+import {
+  ServiceError,
+  type AdminAffiliate,
+  type AdminDashboardStats,
+  type AdminDashboardBreakdownRow,
+} from "@/types";
 
 function mapAdminAffiliate(row: any): AdminAffiliate {
   return {
@@ -40,10 +45,10 @@ export const adminService = {
     return (data ?? []).map(mapAdminAffiliate);
   },
 
-  /** Admin-only: dashboard stats across all affiliates. */
-  async getDashboardStats(period: "all" | "week" | "month" = "all"): Promise<AdminDashboardStats> {
+  /** Admin-only: dashboard stats across all affiliates. p_month = 'YYYY-MM' or null for all. */
+  async getDashboardStats(pMonth: string | null = null): Promise<AdminDashboardStats> {
     const { data, error } = await supabase.rpc("admin_dashboard_stats", {
-      p_period: period,
+      p_month: pMonth,
     });
     if (error) {
       throw new ServiceError(error.message || "Không thể tải thống kê.");
@@ -69,5 +74,27 @@ export const adminService = {
       available_commission: Number(row.available_commission ?? 0),
       paid_commission: Number(row.paid_commission ?? 0),
     };
+  },
+
+  /** Admin-only: per-affiliate breakdown for drill-down. p_month = 'YYYY-MM' or null for all. */
+  async getDashboardBreakdown(pMonth: string | null = null): Promise<AdminDashboardBreakdownRow[]> {
+    const { data, error } = await supabase.rpc("admin_dashboard_breakdown", {
+      p_month: pMonth,
+    });
+    if (error) {
+      throw new ServiceError(error.message || "Không thể tải chi tiết.");
+    }
+    return (data ?? []).map((r: any) => ({
+      affiliate_id: r.affiliate_id,
+      affiliate_code: r.affiliate_code,
+      affiliate_name: r.affiliate_name,
+      clicks: Number(r.clicks ?? 0),
+      leads: Number(r.leads ?? 0),
+      orders: Number(r.orders ?? 0),
+      delivered_orders: Number(r.delivered_orders ?? 0),
+      pending_commission: Number(r.pending_commission ?? 0),
+      available_commission: Number(r.available_commission ?? 0),
+      paid_commission: Number(r.paid_commission ?? 0),
+    }));
   },
 };

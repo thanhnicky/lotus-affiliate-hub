@@ -118,6 +118,20 @@ export interface AdminDashboardStats {
   paid_commission: number;
 }
 
+/** Per-affiliate breakdown row for admin dashboard drill-down. */
+export interface AdminDashboardBreakdownRow {
+  affiliate_id: string;
+  affiliate_code: string;
+  affiliate_name: string;
+  clicks: number;
+  leads: number;
+  orders: number;
+  delivered_orders: number;
+  pending_commission: number;
+  available_commission: number;
+  paid_commission: number;
+}
+
 /** Status of the commission on an order. Distinct from the order's own
  * fulfillment (order_status) and payment (payment_status), which this
  * feature does not touch. */
