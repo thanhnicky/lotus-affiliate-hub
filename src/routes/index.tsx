@@ -285,12 +285,19 @@ function Home() {
           <p className="mt-2 text-sm text-muted-foreground">
             Bạn thuộc một trong các nhóm dưới đây? Đây là cơ hội dành cho bạn.
           </p>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
             {TARGET_GROUPS.map((g) => (
-              <div key={g.title} className="rounded-2xl border border-border/50 bg-card p-5">
-                <g.icon className="h-6 w-6 text-primary" />
-                <h3 className="mt-3 font-display text-sm font-semibold">{g.title}</h3>
-                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{g.text}</p>
+              <div
+                key={g.title}
+                className="flex items-start gap-4 rounded-2xl border border-border/50 bg-card p-5"
+              >
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <g.icon className="h-5 w-5" />
+                </span>
+                <div>
+                  <h3 className="font-display text-sm font-semibold">{g.title}</h3>
+                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{g.text}</p>
+                </div>
               </div>
             ))}
           </div>
