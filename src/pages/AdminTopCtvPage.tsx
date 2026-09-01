@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Loader2, Plus, Save, Trash2, GripVertical, Eye, EyeOff } from "lucide-react";
 
@@ -24,13 +24,12 @@ export function AdminTopCtvPage() {
     },
   });
 
-  // Sync query data to local state
-  if (query.data && !dirty && entries.length === 0 && query.data.length > 0) {
-    setEntries(query.data);
-  }
-  if (query.data && !dirty && entries.length === 0 && query.data.length === 0) {
-    // no entries yet, keep empty
-  }
+  // Sync query data to local state — only when not dirty (user hasn't edited)
+  useEffect(() => {
+    if (query.data && !dirty) {
+      setEntries(query.data);
+    }
+  }, [query.data, dirty]);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
