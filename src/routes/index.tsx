@@ -321,7 +321,7 @@ function Home() {
                         </code>
                       </td>
                       <td className="px-4 py-3 text-right font-semibold text-primary">
-                        {ctv.revenue_label || "—"}
+                        {formatRevenueLabel(ctv.revenue_label)}
                       </td>
                       <td className="px-4 py-3 text-right text-muted-foreground">
                         {ctv.orders_label || "—"}
@@ -342,7 +342,9 @@ function Home() {
                       </code>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-primary">{ctv.revenue_label || "—"}</p>
+                      <p className="font-semibold text-primary">
+                        {formatRevenueLabel(ctv.revenue_label)}
+                      </p>
                       <p className="text-xs text-muted-foreground">{ctv.orders_label || "—"}</p>
                     </div>
                   </li>
@@ -631,6 +633,14 @@ function KeyNumber({ value, label }: { value: string; label: string }) {
       <p className="mt-1 text-[11px] leading-tight opacity-80">{label}</p>
     </div>
   );
+}
+
+/** Format revenue label — if raw number, add thousand separators + đ */
+function formatRevenueLabel(label: string): string {
+  if (!label) return "—";
+  const raw = label.replace(/\D/g, "");
+  if (!raw) return label; // already formatted or text
+  return new Intl.NumberFormat("vi-VN").format(Number(raw)) + "đ";
 }
 
 /** Rank badge for TOP CTV table */

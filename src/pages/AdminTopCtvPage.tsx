@@ -50,6 +50,7 @@ export function AdminTopCtvPage() {
       toast.success("Đã lưu TOP CTV");
       setDirty(false);
       void queryClient.invalidateQueries({ queryKey: ["admin-top-ctv"] });
+      void queryClient.invalidateQueries({ queryKey: ["top-ctv"] });
     },
     onError: (e: Error) => toast.error("Lưu không thành công", { description: e.message }),
   });
