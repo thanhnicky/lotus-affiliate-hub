@@ -35,7 +35,7 @@ const NAV: NavItem[] = [
 ];
 
 const ADMIN_NAV: NavItem[] = [
-  { to: "/admin-dashboard", label: "Tổng quan", icon: LayoutDashboard },
+  { to: "/admin-dashboard", label: "Tổng quan Admin", icon: LayoutDashboard },
   { to: "/admin-orders", label: "Quản lý đơn hàng", icon: ShoppingBag },
   { to: "/admin-affiliates", label: "Quản lý CTV", icon: Users },
 ];
@@ -67,7 +67,7 @@ export function AppLayout({
         </Link>
 
         <nav className="mt-8 grid gap-1">
-          {(affiliate?.role === "admin" ? [...NAV, ...ADMIN_NAV] : NAV).map((item) => (
+          {NAV.map((item) => (
             <Link
               key={item.to}
               to={item.to}
@@ -80,6 +80,26 @@ export function AppLayout({
               {item.label}
             </Link>
           ))}
+          {affiliate?.role === "admin" ? (
+            <>
+              <div className="mt-4 px-3 text-xs font-semibold uppercase tracking-wider text-primary/70">
+                Quản trị
+              </div>
+              {ADMIN_NAV.map((item) => (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={cn(
+                    "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-primary/80 transition-colors hover:bg-primary/10 hover:text-primary",
+                    pathname === item.to && "bg-primary/15 text-primary font-semibold",
+                  )}
+                >
+                  <item.icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
+              ))}
+            </>
+          ) : null}
         </nav>
 
         <Button
