@@ -4,6 +4,7 @@ import {
   type AdminAffiliate,
   type AdminDashboardStats,
   type AdminDashboardBreakdownRow,
+  type TopCtvEntry,
 } from "@/types";
 
 function mapAdminAffiliate(row: any): AdminAffiliate {
@@ -102,5 +103,49 @@ export const adminService = {
       available_commission: Number(r.available_commission ?? 0),
       paid_commission: Number(r.paid_commission ?? 0),
     }));
+  },
+
+  // ─── TOP CTV (admin-managed, shown on homepage) ───
+
+  async listTopCtv(): Promise<TopCtvEntry[]> {
+    const { data, error } = await supabase
+      .from("top_ctv_entries")
+      .select("*")
+      .order("rank", { ascending: true });
+    if (error) throw new ServiceError(error.message || "Không thể tải TOP CTV.");
+    return (data ?? []) as TopCtvEntry[];
+  },
+
+  async upsertTopCtv(entry: Partial<TopCtvEntry> & { id?: string }): Promise<TopCtvEntry> {
+    const payload = {
+      rank: entry.rank ?? 0,
+      display_name: entry.display_name ?? "",
+      affiliate_code: entry.affiliate_code ?? "",
+      revenue_label: entry.revenue_label ?? "",
+      orders_label: entry.orders_label ?? "",
+      is_active: entry.is_active ?? true,
+    };
+    if (entry.id) {
+      const { data, error } = await supabase
+        .from("top_ctv_entries")
+        .update(payload)
+        .eq("id", entry.id)
+        .select()
+        .single();
+      if (error) throw new ServiceError(error.message || "Không thể cập nhật.");
+      return data as TopCtvEntry;
+    }
+    const { data, error } = await supabase
+      .from("top_ctv_entries")
+      .insert(payload)
+      .select()
+      .single();
+    if (error) throw new ServiceError(error.message || "Không thể tạo.");
+    return data as TopCtvEntry;
+  },
+
+  async deleteTopCtv(id: string): Promise<void> {
+    const { error } = await supabase.from("top_ctv_entries").delete().eq("id", id);
+    if (error) throw new ServiceError(error.message || "Không thể xoá.");
   },
 };

@@ -498,9 +498,9 @@ function TopCtvSection() {
       {/* Podium — top 3 */}
       {ranked.length >= 3 ? (
         <div className="mt-6 grid gap-4 sm:grid-cols-3">
-          <PodiumCard rank={2} row={ranked[1]} metric={metric} isMoney={isMoney} />
-          <PodiumCard rank={1} row={ranked[0]} metric={metric} isMoney={isMoney} />
-          <PodiumCard rank={3} row={ranked[2]} metric={metric} isMoney={isMoney} />
+          <PodiumCard rank={2} row={ranked[1]!} metric={metric} isMoney={isMoney} />
+          <PodiumCard rank={1} row={ranked[0]!} metric={metric} isMoney={isMoney} />
+          <PodiumCard rank={3} row={ranked[2]!} metric={metric} isMoney={isMoney} />
         </div>
       ) : null}
 
@@ -514,7 +514,7 @@ function TopCtvSection() {
           <EmptyState
             icon={<Trophy className="h-5 w-5" />}
             title="Chưa có dữ liệu"
-            description={`Chưa có CTV nào có ${TOP_METRIC_OPTIONS.find((o) => o.value === metric)?.label.toLowerCase()} trong ${periodLabel.toLowerCase()}.`}
+            description={`Chưa có CTV nào có ${TOP_METRIC_OPTIONS.find((o) => o.value === metric)?.label.toLowerCase()} trong ${(periodLabel ?? "").toLowerCase()}.`}
           />
         ) : (
           <div className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-card">

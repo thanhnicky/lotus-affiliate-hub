@@ -17,6 +17,7 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as AuthenticatedAdminAffiliatesRouteImport } from './routes/_authenticated/admin-affiliates'
 import { Route as AuthenticatedAdminDashboardRouteImport } from './routes/_authenticated/admin-dashboard'
 import { Route as AuthenticatedAdminOrdersRouteImport } from './routes/_authenticated/admin-orders'
+import { Route as AuthenticatedAdminTopCtvRouteImport } from './routes/_authenticated/admin-top-ctv'
 import { Route as AuthenticatedCreateLinkRouteImport } from './routes/_authenticated/create-link'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedLinksRouteImport } from './routes/_authenticated/links'
@@ -67,6 +68,12 @@ const AuthenticatedAdminOrdersRoute =
   AuthenticatedAdminOrdersRouteImport.update({
     id: '/admin-orders',
     path: '/admin-orders',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminTopCtvRoute =
+  AuthenticatedAdminTopCtvRouteImport.update({
+    id: '/admin-top-ctv',
+    path: '/admin-top-ctv',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedCreateLinkRoute = AuthenticatedCreateLinkRouteImport.update({
@@ -124,6 +131,7 @@ export interface FileRoutesByFullPath {
   '/admin-affiliates': typeof AuthenticatedAdminAffiliatesRoute
   '/admin-dashboard': typeof AuthenticatedAdminDashboardRoute
   '/admin-orders': typeof AuthenticatedAdminOrdersRoute
+  '/admin-top-ctv': typeof AuthenticatedAdminTopCtvRoute
   '/create-link': typeof AuthenticatedCreateLinkRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/links': typeof AuthenticatedLinksRoute
@@ -142,6 +150,7 @@ export interface FileRoutesByTo {
   '/admin-affiliates': typeof AuthenticatedAdminAffiliatesRoute
   '/admin-dashboard': typeof AuthenticatedAdminDashboardRoute
   '/admin-orders': typeof AuthenticatedAdminOrdersRoute
+  '/admin-top-ctv': typeof AuthenticatedAdminTopCtvRoute
   '/create-link': typeof AuthenticatedCreateLinkRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/links': typeof AuthenticatedLinksRoute
@@ -162,6 +171,7 @@ export interface FileRoutesById {
   '/_authenticated/admin-affiliates': typeof AuthenticatedAdminAffiliatesRoute
   '/_authenticated/admin-dashboard': typeof AuthenticatedAdminDashboardRoute
   '/_authenticated/admin-orders': typeof AuthenticatedAdminOrdersRoute
+  '/_authenticated/admin-top-ctv': typeof AuthenticatedAdminTopCtvRoute
   '/_authenticated/create-link': typeof AuthenticatedCreateLinkRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/links': typeof AuthenticatedLinksRoute
@@ -182,6 +192,7 @@ export interface FileRouteTypes {
     | '/admin-affiliates'
     | '/admin-dashboard'
     | '/admin-orders'
+    | '/admin-top-ctv'
     | '/create-link'
     | '/dashboard'
     | '/links'
@@ -200,6 +211,7 @@ export interface FileRouteTypes {
     | '/admin-affiliates'
     | '/admin-dashboard'
     | '/admin-orders'
+    | '/admin-top-ctv'
     | '/create-link'
     | '/dashboard'
     | '/links'
@@ -219,6 +231,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin-affiliates'
     | '/_authenticated/admin-dashboard'
     | '/_authenticated/admin-orders'
+    | '/_authenticated/admin-top-ctv'
     | '/_authenticated/create-link'
     | '/_authenticated/dashboard'
     | '/_authenticated/links'
@@ -297,6 +310,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminOrdersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin-top-ctv': {
+      id: '/_authenticated/admin-top-ctv'
+      path: '/admin-top-ctv'
+      fullPath: '/admin-top-ctv'
+      preLoaderRoute: typeof AuthenticatedAdminTopCtvRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/create-link': {
       id: '/_authenticated/create-link'
       path: '/create-link'
@@ -367,6 +387,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminAffiliatesRoute: typeof AuthenticatedAdminAffiliatesRoute
   AuthenticatedAdminDashboardRoute: typeof AuthenticatedAdminDashboardRoute
   AuthenticatedAdminOrdersRoute: typeof AuthenticatedAdminOrdersRoute
+  AuthenticatedAdminTopCtvRoute: typeof AuthenticatedAdminTopCtvRoute
   AuthenticatedCreateLinkRoute: typeof AuthenticatedCreateLinkRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedLinksRoute: typeof AuthenticatedLinksRoute
@@ -381,6 +402,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminAffiliatesRoute: AuthenticatedAdminAffiliatesRoute,
   AuthenticatedAdminDashboardRoute: AuthenticatedAdminDashboardRoute,
   AuthenticatedAdminOrdersRoute: AuthenticatedAdminOrdersRoute,
+  AuthenticatedAdminTopCtvRoute: AuthenticatedAdminTopCtvRoute,
   AuthenticatedCreateLinkRoute: AuthenticatedCreateLinkRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedLinksRoute: AuthenticatedLinksRoute,

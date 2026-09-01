@@ -513,7 +513,7 @@ function ClickableStatCard({
   icon: ReactNode;
   label: string;
   value: string;
-  hint?: string;
+  hint?: string | undefined;
   highlight?: boolean;
   onClick: () => void;
 }) {

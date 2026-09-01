@@ -20,6 +20,9 @@ import {
   ShieldCheck,
   Image,
   Lightbulb,
+  Trophy,
+  Crown,
+  Medal,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -182,6 +185,12 @@ function Home() {
   });
   const landingPages = pagesQuery.data ?? [];
 
+  const topCtvQuery = useQuery({
+    queryKey: ["top-ctv"],
+    queryFn: () => linksService.listTopCtv(),
+  });
+  const topCtv = topCtvQuery.data ?? [];
+
   return (
     <div className="flex min-h-screen flex-col bg-soft">
       {/* ===== Header ===== */}
@@ -276,6 +285,24 @@ function Home() {
             </Button>
           </div>
         </section>
+
+        {/* ===== TOP CTV (only if data exists) ===== */}
+        {topCtv.length >= 1 ? (
+          <section className="mt-16 md:mt-24">
+            <div className="flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-primary" />
+              <h2 className="font-display text-2xl font-semibold tracking-tight">CTV xuất sắc</h2>
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Những cộng tác viên đang kiếm hoa hồng thật từ sơn Lotus.
+            </p>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {topCtv.map((ctv, i) => (
+                <TopCtvCard key={ctv.id} entry={ctv} rank={i + 1} />
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         {/* ===== Target groups ===== */}
         <section className="mt-16 md:mt-24">
@@ -554,6 +581,50 @@ function KeyNumber({ value, label }: { value: string; label: string }) {
     <div className="rounded-xl bg-brand px-3 py-4 text-center text-primary-foreground">
       <p className="font-display text-xl font-bold md:text-2xl">{value}</p>
       <p className="mt-1 text-[11px] leading-tight opacity-80">{label}</p>
+    </div>
+  );
+}
+
+/** TOP CTV card for homepage */
+function TopCtvCard({
+  entry,
+  rank,
+}: {
+  entry: {
+    display_name: string;
+    affiliate_code: string;
+    revenue_label: string;
+    orders_label: string;
+  };
+  rank: number;
+}) {
+  const icon =
+    rank === 1 ? (
+      <Crown className="h-5 w-5 text-amber-600" />
+    ) : rank === 2 ? (
+      <Medal className="h-5 w-5 text-slate-500" />
+    ) : rank === 3 ? (
+      <Medal className="h-5 w-5 text-orange-600" />
+    ) : null;
+
+  return (
+    <div className="rounded-2xl border border-border/50 bg-card p-5">
+      <div className="flex items-center gap-2">
+        {icon}
+        <span className="text-xs font-medium text-muted-foreground">Hạng {rank}</span>
+      </div>
+      <p className="mt-2 font-display text-base font-semibold">{entry.display_name}</p>
+      {entry.affiliate_code ? (
+        <code className="mt-0.5 inline-block rounded bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+          {entry.affiliate_code}
+        </code>
+      ) : null}
+      {entry.revenue_label ? (
+        <p className="mt-3 font-display text-lg font-bold text-primary">{entry.revenue_label}</p>
+      ) : null}
+      {entry.orders_label ? (
+        <p className="mt-0.5 text-xs text-muted-foreground">{entry.orders_label}</p>
+      ) : null}
     </div>
   );
 }

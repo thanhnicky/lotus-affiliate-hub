@@ -5,6 +5,7 @@ import {
   type CreateLinkInput,
   type DashboardStats,
   type LandingPage,
+  type TopCtvEntry,
 } from "@/types";
 
 export const linksService = {
@@ -26,6 +27,23 @@ export const linksService = {
       return (data ?? []) as LandingPage[];
     } catch (err: any) {
       throw new ServiceError(err?.message || "Không thể tải danh sách landing page.");
+    }
+  },
+
+  /** Public: fetch active TOP CTV entries for homepage display. */
+  async listTopCtv(): Promise<TopCtvEntry[]> {
+    try {
+      const { data, error } = await supabase
+        .from("top_ctv_entries")
+        .select("*")
+        .eq("is_active", true)
+        .order("rank", { ascending: true })
+        .limit(6);
+      if (error) throw error;
+      return (data ?? []) as TopCtvEntry[];
+    } catch {
+      // Fail silently on homepage — just return empty
+      return [];
     }
   },
 

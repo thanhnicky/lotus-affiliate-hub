@@ -9,6 +9,7 @@ import {
   ShoppingBag,
   Users,
   Sparkles,
+  Trophy,
   Phone,
   Mail,
   MapPin,
@@ -38,6 +39,7 @@ const ADMIN_NAV: NavItem[] = [
   { to: "/admin-dashboard", label: "Tổng quan Admin", icon: LayoutDashboard },
   { to: "/admin-orders", label: "Quản lý đơn hàng", icon: ShoppingBag },
   { to: "/admin-affiliates", label: "Quản lý CTV", icon: Users },
+  { to: "/admin-top-ctv", label: "TOP CTV", icon: Trophy },
 ];
 
 export function AppLayout({

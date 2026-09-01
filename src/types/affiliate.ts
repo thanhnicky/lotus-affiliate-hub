@@ -136,6 +136,17 @@ export interface AdminDashboardBreakdownRow {
   paid_commission: number;
 }
 
+/** Admin-managed TOP CTV entry shown on homepage. */
+export interface TopCtvEntry {
+  id: string;
+  rank: number;
+  display_name: string;
+  affiliate_code: string;
+  revenue_label: string;
+  orders_label: string;
+  is_active: boolean;
+}
+
 /** Status of the commission on an order. Distinct from the order's own
  * fulfillment (order_status) and payment (payment_status), which this
  * feature does not touch. */
